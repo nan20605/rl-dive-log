@@ -1,9 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { Float } from "@react-three/drei";
-import * as THREE from "three";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ArrowDown,
   BookOpen,
@@ -11,16 +8,10 @@ import {
   FolderOpen,
   Github,
   Sparkles,
-  Waves,
 } from "lucide-react";
 
 type TabKey = "notes" | "projects";
 type BubbleBurst = { id: number; x: number; y: number };
-
-type SceneProps = {
-  progress: number;
-  mouse: { x: number; y: number };
-};
 
 const tabs = [
   { key: "notes" as const, label: "Notes", Icon: BookOpen },
@@ -58,862 +49,576 @@ const projects = [
   {
     title: "Diver vs Current",
     type: "Interactive RL Demo",
-    description: "An agent learns to move through shifting underwater currents.",
+    description:
+      "An agent learns to move through shifting underwater currents.",
   },
   {
     title: "Coral Policy Garden",
     type: "Policy Visualization",
-    description: "Policies grow like glowing coral branches as training improves.",
+    description:
+      "Policies grow like glowing coral branches as training improves.",
   },
   {
     title: "Deep Sea Treasure Hunt",
     type: "Gridworld Project",
-    description: "Rewards, hazards, and trajectories visualized on the ocean floor.",
+    description:
+      "Rewards, hazards, and trajectories visualized on the ocean floor.",
   },
   {
     title: "Jellyfish Explorer",
     type: "Exploration Demo",
-    description: "A soft, beautiful visualization of epsilon-greedy exploration.",
+    description:
+      "A soft, beautiful visualization of epsilon-greedy exploration.",
   },
 ];
 
-const depthStages = [
-  { label: "Sunlit Surface", range: [0, 0.18] },
-  { label: "Blue Descent", range: [0.18, 0.38] },
-  { label: "Coral Forest", range: [0.38, 0.62] },
-  { label: "Twilight Zone", range: [0.62, 0.82] },
-  { label: "Abyssal Floor", range: [0.82, 1] },
-] as const;
-
-function clamp01(x: number) {
-  return Math.max(0, Math.min(1, x));
-}
-
-function lerp(a: number, b: number, t: number) {
-  return a + (b - a) * t;
-}
-
-function sceneColors(progress: number) {
-  if (progress < 0.18) {
-    return {
-      top: "#6fdfff",
-      bottom: "#0f4f85",
-      fog: "#78dbff",
-      ambient: "#8fe9ff",
-    };
-  }
-  if (progress < 0.38) {
-    return {
-      top: "#2c8fd3",
-      bottom: "#062f5d",
-      fog: "#2e97d9",
-      ambient: "#67c7ff",
-    };
-  }
-  if (progress < 0.62) {
-    return {
-      top: "#1a6cb2",
-      bottom: "#04213f",
-      fog: "#1f6ba7",
-      ambient: "#67e2ff",
-    };
-  }
-  if (progress < 0.82) {
-    return {
-      top: "#113e73",
-      bottom: "#020f25",
-      fog: "#153c66",
-      ambient: "#72a7ff",
-    };
-  }
-  return {
-    top: "#07162f",
-    bottom: "#020612",
-    fog: "#091628",
-    ambient: "#9cc6ff",
-  };
-}
-
-function BubbleField({ progress }: { progress: number }) {
-  const group = useRef<THREE.Group>(null);
-
-  const bubbles = useMemo(
-    () =>
-      Array.from({ length: 90 }, (_, i) => ({
-        id: i,
-        x: (Math.random() - 0.5) * 26,
-        y: -10 - Math.random() * 16,
-        z: -8 + Math.random() * 12,
-        r: 0.06 + Math.random() * 0.16,
-        speed: 0.01 + Math.random() * 0.03,
-      })),
-    []
-  );
-
-  useFrame(() => {
-    if (!group.current) return;
-
-    group.current.children.forEach((child, i) => {
-      const b = bubbles[i];
-      child.position.y += b.speed * (1 + progress * 0.8);
-      child.position.x += Math.sin(performance.now() * 0.0007 + i) * 0.002;
-
-      if (child.position.y > 11) {
-        child.position.y = -10 - Math.random() * 5;
-      }
-    });
-  });
-
-  return (
-    <group ref={group}>
-      {bubbles.map((b) => (
-        <mesh key={b.id} position={[b.x, b.y, b.z]}>
-          <sphereGeometry args={[b.r, 16, 16]} />
-          <meshPhysicalMaterial
-            color="#c8f5ff"
-            transmission={1}
-            transparent
-            opacity={0.5}
-            roughness={0.05}
-            metalness={0}
-          />
-        </mesh>
-      ))}
-    </group>
-  );
-}
-
-function FishSchool({
-  count,
-  area,
-  tint = "#8ce9ff",
-  speed = 1,
-}: {
-  count: number;
-  area: number;
-  tint?: string;
-  speed?: number;
-}) {
-  const group = useRef<THREE.Group>(null);
-
-  const fish = useMemo(
-    () =>
-      Array.from({ length: count }, (_, i) => ({
-        id: i,
-        radius: 1.5 + Math.random() * area,
-        offset: Math.random() * Math.PI * 2,
-        y: -1 + Math.random() * 7,
-        z: -7 + Math.random() * 10,
-        scale: 0.12 + Math.random() * 0.18,
-      })),
-    [count, area]
-  );
-
-  useFrame(({ clock }) => {
-    if (!group.current) return;
-
-    const t = clock.getElapsedTime() * 0.35 * speed;
-
-    group.current.children.forEach((child, i) => {
-      const f = fish[i];
-      child.position.x = Math.sin(t + f.offset) * f.radius;
-      child.position.y = f.y + Math.cos(t * 1.2 + f.offset) * 0.35;
-      child.position.z = f.z + Math.cos(t + f.offset) * 0.6;
-      child.rotation.y = Math.cos(t + f.offset) > 0 ? Math.PI : 0;
-      child.rotation.z = Math.sin(t * 2 + f.offset) * 0.08;
-    });
-  });
-
-  return (
-    <group ref={group}>
-      {fish.map((f) => (
-        <group key={f.id} scale={f.scale}>
-          <mesh>
-            <sphereGeometry args={[0.55, 20, 20]} />
-            <meshStandardMaterial
-              color={tint}
-              emissive={tint}
-              emissiveIntensity={0.15}
-              roughness={0.35}
-            />
-          </mesh>
-          <mesh position={[0.72, 0, 0]} rotation={[0, 0, Math.PI / 2]}>
-            <coneGeometry args={[0.42, 0.85, 4]} />
-            <meshStandardMaterial
-              color="#b9fcff"
-              emissive="#7bdfff"
-              emissiveIntensity={0.1}
-            />
-          </mesh>
-          <mesh position={[-0.2, 0.25, 0]} rotation={[0, 0, -0.4]}>
-            <coneGeometry args={[0.18, 0.35, 3]} />
-            <meshStandardMaterial color="#d6ffff" />
-          </mesh>
-          <mesh position={[-0.2, -0.25, 0]} rotation={[0, 0, 0.4]}>
-            <coneGeometry args={[0.18, 0.35, 3]} />
-            <meshStandardMaterial color="#d6ffff" />
-          </mesh>
-        </group>
-      ))}
-    </group>
-  );
-}
-
-function CoralCluster({
-  position,
-  scale = 1,
-  bright = false,
-}: {
-  position: [number, number, number];
-  scale?: number;
-  bright?: boolean;
-}) {
-  const colorA = bright ? "#7ff4ff" : "#58d9ff";
-  const colorB = bright ? "#f1a4ff" : "#b76cff";
-  const colorC = bright ? "#8cffc9" : "#43d98b";
-
-  return (
-    <group position={position} scale={scale}>
-      <mesh position={[0, 0.65, 0]}>
-        <cylinderGeometry args={[0.16, 0.24, 1.3, 8]} />
-        <meshStandardMaterial
-          color={colorA}
-          emissive={colorA}
-          emissiveIntensity={0.35}
-          roughness={0.45}
-        />
-      </mesh>
-      <mesh position={[-0.35, 0.95, 0.12]} rotation={[0, 0, -0.45]}>
-        <cylinderGeometry args={[0.09, 0.13, 0.9, 8]} />
-        <meshStandardMaterial
-          color={colorB}
-          emissive={colorB}
-          emissiveIntensity={0.28}
-          roughness={0.45}
-        />
-      </mesh>
-      <mesh position={[0.38, 0.88, -0.08]} rotation={[0, 0, 0.5]}>
-        <cylinderGeometry args={[0.08, 0.12, 0.85, 8]} />
-        <meshStandardMaterial
-          color={colorC}
-          emissive={colorC}
-          emissiveIntensity={0.26}
-          roughness={0.45}
-        />
-      </mesh>
-      <mesh position={[0.02, 1.36, 0]}>
-        <sphereGeometry args={[0.12, 12, 12]} />
-        <meshStandardMaterial
-          color="#dcffff"
-          emissive="#b1ffff"
-          emissiveIntensity={0.5}
-        />
-      </mesh>
-    </group>
-  );
-}
-
-function ReefBand({
-  depth,
-  progress,
-  count = 12,
-}: {
-  depth: number;
-  progress: number;
-  count?: number;
-}) {
-  const positions = useMemo(
-    () =>
-      Array.from({ length: count }, (_, i) => ({
-        x: -13 + (i / (count - 1)) * 26,
-        z: depth + (Math.random() - 0.5) * 3,
-        s: 0.8 + Math.random() * 1.5,
-      })),
-    [count, depth]
-  );
-
-  return (
-    <group position={[0, -4.7, 0]}>
-      {positions.map((p, i) => (
-        <CoralCluster
-          key={i}
-          position={[p.x, 0, p.z]}
-          scale={p.s * (0.8 + progress * 0.4)}
-          bright={progress > 0.35 && progress < 0.8}
-        />
-      ))}
-    </group>
-  );
-}
-
-function Mermaid({ progress, mouse }: SceneProps) {
-  const ref = useRef<THREE.Group>(null);
-
-  useFrame(({ clock }) => {
-    if (!ref.current) return;
-
-    const t = clock.getElapsedTime();
-    ref.current.position.x = -4.8 + Math.sin(t * 0.35) * 3.4 + mouse.x * 0.9;
-    ref.current.position.y =
-      1.9 + Math.sin(t * 1.2) * 0.22 - progress * 1.4 + mouse.y * 0.35;
-    ref.current.position.z = 1.2 + Math.cos(t * 0.3) * 0.35;
-    ref.current.rotation.z = Math.sin(t * 1.1) * 0.12;
-    ref.current.rotation.y = Math.sin(t * 0.35) * 0.18 + 0.35;
-
-    const spineUpper = ref.current.getObjectByName("spine-upper");
-    const spineLower = ref.current.getObjectByName("spine-lower");
-    const tailBase = ref.current.getObjectByName("tail-base");
-    const tail = ref.current.getObjectByName("tail");
-
-    const swimPhase = t * 2.6;
-    const spineWave = Math.sin(swimPhase) * 0.08;
-    const lowerWave = Math.sin(swimPhase + 0.5) * 0.12;
-    const tailWave = Math.sin(swimPhase + 0.9) * 0.24;
-
-    if (spineUpper) {
-      spineUpper.rotation.z = spineWave * 0.6;
-      spineUpper.rotation.y = spineWave * 0.4;
-    }
-    if (spineLower) {
-      spineLower.rotation.z = lowerWave * 0.9;
-      spineLower.rotation.y = lowerWave * 0.6;
-    }
-    if (tailBase) {
-      tailBase.rotation.z = lowerWave * 1.1;
-      tailBase.rotation.y = lowerWave * 0.7;
-    }
-    if (tail) {
-      tail.rotation.z = tailWave;
-      tail.rotation.y = tailWave * 0.3;
-    }
-
-    const fin = ref.current.getObjectByName("fin");
-    if (fin) fin.rotation.z = Math.sin(t * 4.1) * 0.38;
-
-    const hair = ref.current.getObjectByName("hair");
-    if (hair) hair.rotation.z = Math.sin(t * 2.2) * 0.12;
-  });
-
-  return (
-    <Float speed={1.1} rotationIntensity={0.15} floatIntensity={0.25}>
-      <group ref={ref} scale={1.18}>
-        {/* Upper body / spine */}
-        <group name="spine-upper">
-          <mesh position={[0, 0.65, 0]}>
-            <capsuleGeometry args={[0.28, 0.8, 24, 32]} />
-            <meshPhysicalMaterial
-              color="#f3d2c0"
-              roughness={0.45}
-              metalness={0.0}
-              sheen={0.35}
-              sheenRoughness={0.6}
-              clearcoat={0.25}
-              clearcoatRoughness={0.6}
-            />
-          </mesh>
-          <mesh position={[0, 1.45, 0.05]}>
-            <sphereGeometry args={[0.25, 32, 32]} />
-            <meshPhysicalMaterial
-              color="#f1cdb8"
-              roughness={0.42}
-              metalness={0.0}
-              sheen={0.35}
-              sheenRoughness={0.6}
-              clearcoat={0.25}
-              clearcoatRoughness={0.6}
-            />
-          </mesh>
-          <mesh name="hair" position={[-0.02, 1.48, -0.16]}>
-            <sphereGeometry args={[0.3, 36, 36]} />
-            <meshStandardMaterial
-              color="#5f3bd4"
-              emissive="#3c2aa3"
-              emissiveIntensity={0.12}
-              roughness={0.6}
-            />
-          </mesh>
-          {/* simple eyes */}
-          <mesh position={[0.09, 1.46, 0.16]}>
-            <sphereGeometry args={[0.035, 18, 18]} />
-            <meshStandardMaterial color="#111827" roughness={0.25} />
-          </mesh>
-          <mesh position={[-0.09, 1.46, 0.16]}>
-            <sphereGeometry args={[0.035, 18, 18]} />
-            <meshStandardMaterial color="#111827" roughness={0.25} />
-          </mesh>
-          <mesh position={[0, 0.84, 0.18]}>
-            <sphereGeometry args={[0.2, 24, 24]} />
-            <meshPhysicalMaterial
-              color="#b96df0"
-              roughness={0.35}
-              metalness={0.1}
-              clearcoat={0.3}
-              clearcoatRoughness={0.4}
-            />
-          </mesh>
-          <mesh position={[-0.42, 0.88, 0]} rotation={[0, 0, 0.45]}>
-            <capsuleGeometry args={[0.08, 0.42, 12, 12]} />
-            <meshPhysicalMaterial
-              color="#f2d0bf"
-              roughness={0.45}
-              metalness={0}
-              sheen={0.25}
-              sheenRoughness={0.7}
-            />
-          </mesh>
-          <mesh position={[0.42, 0.88, 0]} rotation={[0, 0, -0.45]}>
-            <capsuleGeometry args={[0.08, 0.42, 12, 12]} />
-            <meshPhysicalMaterial
-              color="#f2d0bf"
-              roughness={0.45}
-              metalness={0}
-              sheen={0.25}
-              sheenRoughness={0.7}
-            />
-          </mesh>
-        </group>
-
-        {/* Lower spine and tail */}
-        <group name="spine-lower" position={[0, -0.35, 0]} rotation={[0, 0, 0.04]}>
-          <group name="tail-base" position={[0, -0.05, 0]}>
-            <mesh>
-              <cylinderGeometry args={[0.24, 0.14, 1.5, 28]} />
-              <meshPhysicalMaterial
-                color="#3fc0b7"
-                roughness={0.3}
-                metalness={0.08}
-                transmission={0.25}
-                thickness={0.6}
-                ior={1.33}
-                clearcoat={0.3}
-                clearcoatRoughness={0.35}
-              />
-            </mesh>
-          </group>
-          <group name="tail" position={[0, -1.15, 0]}>
-            <mesh>
-              <cylinderGeometry args={[0.16, 0.06, 1.1, 32]} />
-              <meshPhysicalMaterial
-                color="#48d3c4"
-                roughness={0.28}
-                metalness={0.08}
-                transmission={0.32}
-                thickness={0.7}
-                ior={1.33}
-                clearcoat={0.35}
-                clearcoatRoughness={0.35}
-              />
-            </mesh>
-            <mesh name="fin" position={[0, -0.9, 0]} rotation={[0, 0, Math.PI / 2]}>
-              <coneGeometry args={[0.45, 0.9, 22]} />
-              <meshPhysicalMaterial
-                color="#7ddff5"
-                roughness={0.16}
-                metalness={0.05}
-                transmission={0.6}
-                thickness={0.5}
-                ior={1.33}
-                clearcoat={0.4}
-                clearcoatRoughness={0.25}
-              />
-            </mesh>
-          </group>
-        </group>
-      </group>
-    </Float>
-  );
-}
-
-function SeaFloor({ progress }: { progress: number }) {
-  return (
-    <group position={[0, -5.6, 0]}>
-      <mesh rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[42, 38, 1, 1]} />
-        <meshStandardMaterial
-          color={progress > 0.75 ? "#081320" : "#0d3d4d"}
-          roughness={1}
-          metalness={0}
-        />
-      </mesh>
-      <mesh position={[-6, 0.35, -4]}>
-        <sphereGeometry args={[1.4, 24, 24]} />
-        <meshStandardMaterial color="#19465e" roughness={1} />
-      </mesh>
-      <mesh position={[4.5, 0.45, -2]}>
-        <sphereGeometry args={[1.7, 24, 24]} />
-        <meshStandardMaterial color="#12384d" roughness={1} />
-      </mesh>
-      <mesh position={[0, 0.25, 1.5]}>
-        <sphereGeometry args={[1.1, 24, 24]} />
-        <meshStandardMaterial color="#1a5465" roughness={1} />
-      </mesh>
-    </group>
-  );
-}
-
-function DepthScenery({ progress, mouse }: SceneProps) {
-  const surfaceT = clamp01((0.18 - progress) / 0.18);
-  const descentT = clamp01(1 - Math.abs(progress - 0.28) / 0.12);
-  const coralT = clamp01(1 - Math.abs(progress - 0.5) / 0.18);
-  const twilightT = clamp01(1 - Math.abs(progress - 0.72) / 0.12);
-  const abyssT = clamp01((progress - 0.78) / 0.22);
-
-  return (
-    <group position={[mouse.x * 0.45, mouse.y * 0.25, 0]}>
-      <group visible={surfaceT > 0.02}>
-        <mesh position={[0, 7.6, -8]} rotation={[-0.15, 0, 0]}>
-          <planeGeometry args={[24, 10]} />
-          <meshBasicMaterial
-            color="#c0fbff"
-            transparent
-            opacity={0.14 + surfaceT * 0.14}
-          />
-        </mesh>
-        <FishSchool count={8} area={5} tint="#d4ffff" speed={0.8} />
-      </group>
-
-      <group visible={descentT > 0.02}>
-        {Array.from({ length: 8 }).map((_, i) => (
-          <mesh
-            key={i}
-            position={[-8 + i * 2.3, 3.5 - i * 0.7, -7 + i * 0.2]}
-            rotation={[0, 0, -0.55]}
-          >
-            <cylinderGeometry args={[0.03, 0.16, 6.5, 8]} />
-            <meshBasicMaterial
-              color="#89dbff"
-              transparent
-              opacity={0.06 + descentT * 0.12}
-            />
-          </mesh>
-        ))}
-      </group>
-
-      <group visible={coralT > 0.02}>
-        <ReefBand depth={-2} progress={coralT} count={14} />
-        <ReefBand depth={2} progress={coralT} count={12} />
-        <FishSchool count={14} area={7} tint="#7df2ff" speed={1.15} />
-      </group>
-
-      <group visible={twilightT > 0.02}>
-        {Array.from({ length: 16 }).map((_, i) => (
-          <mesh
-            key={i}
-            position={[
-              (Math.random() - 0.5) * 18,
-              -1 + Math.random() * 8,
-              -8 + Math.random() * 12,
-            ]}
-          >
-            <sphereGeometry args={[0.07 + Math.random() * 0.07, 12, 12]} />
-            <meshBasicMaterial
-              color={i % 2 === 0 ? "#8be1ff" : "#be8fff"}
-              transparent
-              opacity={0.75}
-            />
-          </mesh>
-        ))}
-        <FishSchool count={7} area={5} tint="#b6a2ff" speed={0.6} />
-      </group>
-
-      <group visible={abyssT > 0.02}>
-        <ReefBand depth={0} progress={abyssT} count={10} />
-        {Array.from({ length: 7 }).map((_, i) => (
-          <mesh
-            key={i}
-            position={[-10 + i * 3.1, -3.4 + Math.sin(i) * 0.5, -4 + Math.cos(i) * 2]}
-          >
-            <coneGeometry args={[0.55, 2.1 + (i % 3) * 0.7, 7]} />
-            <meshStandardMaterial
-              color="#0e2745"
-              emissive="#12345c"
-              emissiveIntensity={0.14}
-              roughness={0.9}
-            />
-          </mesh>
-        ))}
-      </group>
-    </group>
-  );
-}
-
-function CameraRig({ progress, mouse }: SceneProps) {
-  useFrame(({ camera }) => {
-    const y = lerp(1.8, -4.1, progress);
-    camera.position.x = mouse.x * 0.8;
-    camera.position.y = y + mouse.y * 0.35;
-    camera.position.z = 9.5 - progress * 1.6;
-    camera.lookAt(mouse.x * 0.6, y * 0.2, 0);
-  });
-
-  return null;
-}
-
-function UnderwaterScene({ progress, mouse }: SceneProps) {
-  const colors = sceneColors(progress);
-  const fogColor = useMemo(() => new THREE.Color(colors.fog), [colors.fog]);
-
-  return (
-    <>
-      <color attach="background" args={[colors.bottom]} />
-      <fog attach="fog" args={[fogColor, 10, 28]} />
-      <ambientLight intensity={0.7} color={colors.ambient} />
-      <directionalLight position={[4, 7, 6]} intensity={2.4} color="#d8fbff" />
-      <pointLight position={[-5, 2, 4]} intensity={1.15} color="#75f2ff" />
-      <pointLight
-        position={[5, -2, 2]}
-        intensity={0.8 + progress * 0.5}
-        color="#ae8eff"
-      />
-      <pointLight
-        position={[-4.5, 2.4, 2.2]}
-        intensity={0.7}
-        distance={14}
-        color="#b9ecff"
-      />
-      <CameraRig progress={progress} mouse={mouse} />
-      <DepthScenery progress={progress} mouse={mouse} />
-      <Mermaid progress={progress} mouse={mouse} />
-      <BubbleField progress={progress} />
-      <SeaFloor progress={progress} />
-    </>
-  );
-}
-
-export default function RLUnderwaterQuestSite() {
+export default function Page() {
   const [activeTab, setActiveTab] = useState<TabKey>("notes");
-  const [mouse, setMouse] = useState({ x: 0, y: 0 });
-  const [progress, setProgress] = useState(0);
   const [bursts, setBursts] = useState<BubbleBurst[]>([]);
+  const [mouse, setMouse] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const onMove = (e: MouseEvent) => {
       setMouse({
         x: (e.clientX / window.innerWidth - 0.5) * 2,
-        y: -(e.clientY / window.innerHeight - 0.5) * 2,
+        y: (e.clientY / window.innerHeight - 0.5) * 2,
       });
     };
 
-    const onScroll = () => {
-      const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-      setProgress(scrollable > 0 ? window.scrollY / scrollable : 0);
-    };
-
     window.addEventListener("mousemove", onMove);
-    window.addEventListener("scroll", onScroll);
-    onScroll();
-
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("scroll", onScroll);
-    };
+    return () => window.removeEventListener("mousemove", onMove);
   }, []);
 
-  const depthLabel = useMemo(() => {
-    const current = depthStages.find(
-      (stage) => progress >= stage.range[0] && progress <= stage.range[1]
-    );
-    return current?.label ?? "Abyssal Floor";
-  }, [progress]);
+  const ambientBubbles = useMemo(
+    () =>
+      Array.from({ length: 26 }, (_, i) => ({
+        id: i,
+        left: `${4 + i * 3.6}%`,
+        size: 10 + (i % 5) * 7,
+        duration: 8 + (i % 4) * 2,
+        delay: (i % 7) * 0.7,
+        opacity: 0.15 + (i % 4) * 0.08,
+      })),
+    []
+  );
 
   function spawnBurst(e: React.MouseEvent<HTMLDivElement>) {
     const id = Date.now() + Math.random();
-    const x = e.clientX;
-    const y = e.clientY;
-
-    setBursts((prev) => [...prev, { id, x, y }]);
-
+    setBursts((prev) => [...prev, { id, x: e.clientX, y: e.clientY }]);
     window.setTimeout(() => {
       setBursts((prev) => prev.filter((b) => b.id !== id));
-    }, 1400);
+    }, 1700);
   }
 
   return (
     <div
-      className="min-h-[500vh] overflow-x-hidden bg-[#020816] text-white"
+      className="min-h-screen overflow-x-hidden bg-[#0b4f86] text-white"
       onClick={spawnBurst}
     >
       <style>{`
-        html { scroll-behavior: smooth; }
-        @keyframes bubbleBurst {
-          0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0.9; }
-          100% { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1.2); opacity: 0; }
+        html {
+          scroll-behavior: smooth;
         }
-        @keyframes bubblePop {
-          0% { transform: scale(0.3); opacity: 0.9; }
-          100% { transform: scale(1.1); opacity: 0; }
+
+        body {
+          background: #0b4f86;
+        }
+
+        @keyframes driftSlow {
+          0%, 100% { transform: translate3d(0px, 0px, 0px); }
+          50% { transform: translate3d(0px, -16px, 0px); }
+        }
+
+        @keyframes driftSide {
+          0%, 100% { transform: translate3d(0px, 0px, 0px); }
+          50% { transform: translate3d(18px, -12px, 0px); }
+        }
+
+        @keyframes sway {
+          0%, 100% { transform: rotate(0deg) translateY(0px); }
+          50% { transform: rotate(2deg) translateY(-6px); }
+        }
+
+        @keyframes riseBubble {
+          0% { transform: translateY(80px) scale(0.8); opacity: 0; }
+          15% { opacity: 1; }
+          100% { transform: translateY(-120vh) scale(1.1); opacity: 0; }
+        }
+
+        @keyframes mermaidFloat {
+          0%   { transform: translate(0px, 0px) rotate(-3deg); }
+          20%  { transform: translate(90px, -24px) rotate(2deg); }
+          40%  { transform: translate(180px, 8px) rotate(5deg); }
+          60%  { transform: translate(80px, 40px) rotate(1deg); }
+          80%  { transform: translate(-20px, 10px) rotate(-4deg); }
+          100% { transform: translate(0px, 0px) rotate(-3deg); }
+        }
+
+        @keyframes tailWave {
+          0%, 100% { transform: rotate(8deg); }
+          50% { transform: rotate(-12deg); }
+        }
+
+        @keyframes hairFlow {
+          0%, 100% { transform: rotate(-2deg) scaleX(1); }
+          50% { transform: rotate(4deg) scaleX(1.03); }
+        }
+
+        @keyframes glowPulse {
+          0%, 100% { opacity: 0.45; }
+          50% { opacity: 0.9; }
+        }
+
+        @keyframes palaceGlow {
+          0%, 100% { opacity: 0.24; filter: blur(0px); }
+          50% { opacity: 0.38; filter: blur(1px); }
+        }
+
+        @keyframes bubbleBurst {
+          0% {
+            transform: translate(-50%, -50%) translate(0px, 0px) scale(0.35);
+            opacity: 0.9;
+          }
+          100% {
+            transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(1.25);
+            opacity: 0;
+          }
+        }
+
+        @keyframes bubbleRing {
+          0% {
+            transform: translate(-50%, -50%) scale(0.2);
+            opacity: 0.75;
+          }
+          100% {
+            transform: translate(-50%, -50%) scale(2.2);
+            opacity: 0;
+          }
         }
       `}</style>
 
-      <div className="fixed inset-0 z-0">
-        <Canvas camera={{ position: [0, 1.5, 9.5], fov: 48 }} gl={{ antialias: true }}>
-          <UnderwaterScene progress={progress} mouse={mouse} />
-        </Canvas>
-      </div>
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(to bottom, #2cc2ef 0%, #1aa6dc 18%, #0c6ea6 42%, #0a5488 68%, #083b67 100%)",
+          }}
+        />
 
-      <div
-        className="pointer-events-none fixed left-0 right-0 top-0 z-50 h-[3px] bg-gradient-to-r from-cyan-300 via-sky-300 to-violet-300"
-        style={{ transform: `scaleX(${progress})`, transformOrigin: "left" }}
-      />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "radial-gradient(circle at 82% 10%, rgba(232,255,255,0.55), transparent 25%), radial-gradient(circle at 72% 24%, rgba(224,255,240,0.22), transparent 18%), radial-gradient(circle at 22% 18%, rgba(28,89,150,0.24), transparent 24%), radial-gradient(circle at 20% 56%, rgba(21,77,130,0.28), transparent 32%)",
+          }}
+        />
 
-      <div className="pointer-events-none fixed right-4 top-4 z-50 hidden rounded-2xl border border-cyan-100/10 bg-slate-950/45 px-4 py-3 text-sm text-cyan-50/85 backdrop-blur-xl md:block">
-        <div className="text-xs uppercase tracking-[0.25em] text-cyan-200/60">
-          Depth
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.08),transparent_20%,transparent_70%,rgba(4,27,48,0.25))]" />
+
+        <div
+          className="absolute -left-[8%] top-[-3%] h-[52vh] w-[44vw] rounded-[48%]"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(72,145,119,0.58), rgba(32,108,125,0.42) 40%, rgba(11,76,120,0.15) 100%)",
+            filter: "blur(0.5px)",
+            transform: `translate(${mouse.x * -12}px, ${mouse.y * -8}px) rotate(-6deg)`,
+          }}
+        >
+          <div className="absolute left-[8%] top-[7%] h-[75%] w-[55%] rounded-[45%] bg-[linear-gradient(180deg,rgba(48,120,91,0.45),rgba(11,69,100,0.05))]" />
+          <div className="absolute right-[14%] top-[10%] h-[65%] w-[28%] rounded-[45%] bg-[linear-gradient(180deg,rgba(63,156,116,0.38),rgba(11,69,100,0.05))]" />
         </div>
-        <div className="mt-1 font-medium text-cyan-100">{depthLabel}</div>
+
+        <div
+          className="absolute left-[3%] top-[18%] h-[34vh] w-[30vw]"
+          style={{
+            transform: `translate(${mouse.x * -8}px, ${mouse.y * -5}px)`,
+          }}
+        >
+          {Array.from({ length: 7 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute bottom-0 rounded-t-[100%]"
+              style={{
+                left: `${i * 12}%`,
+                width: `${30 + (i % 3) * 14}px`,
+                height: `${140 + (i % 4) * 28}px`,
+                background:
+                  i % 2 === 0
+                    ? "linear-gradient(to top, rgba(30,125,95,0.55), rgba(71,188,131,0.3), transparent)"
+                    : "linear-gradient(to top, rgba(24,103,104,0.5), rgba(65,174,153,0.25), transparent)",
+                filter: "blur(0.4px)",
+                animation: `sway ${4 + i * 0.35}s ease-in-out infinite`,
+                animationDelay: `${i * 0.18}s`,
+              }}
+            />
+          ))}
+        </div>
+
+        <div
+          className="absolute right-[10%] top-[16%] h-[40vh] w-[24vw]"
+          style={{
+            transform: `translate(${mouse.x * 10}px, ${mouse.y * -6}px)`,
+          }}
+        >
+          <div className="absolute bottom-0 left-[30%] h-[72%] w-[14%] rounded-t-[16px] bg-[linear-gradient(to_top,rgba(137,216,170,0.62),rgba(202,255,219,0.45))] shadow-[0_0_24px_rgba(220,255,230,0.18)] animate-[palaceGlow_4s_ease-in-out_infinite]" />
+          <div className="absolute bottom-0 left-[7%] h-[52%] w-[12%] rounded-t-[14px] bg-[linear-gradient(to_top,rgba(114,195,150,0.58),rgba(203,255,214,0.38))] animate-[palaceGlow_5s_ease-in-out_infinite]" />
+          <div className="absolute bottom-0 left-[52%] h-[60%] w-[12%] rounded-t-[14px] bg-[linear-gradient(to_top,rgba(126,203,159,0.58),rgba(212,255,230,0.4))] animate-[palaceGlow_4.5s_ease-in-out_infinite]" />
+          <div className="absolute bottom-0 left-[71%] h-[48%] w-[11%] rounded-t-[14px] bg-[linear-gradient(to_top,rgba(110,188,150,0.52),rgba(205,255,220,0.32))] animate-[palaceGlow_5.5s_ease-in-out_infinite]" />
+          <div className="absolute left-[4%] right-[8%] bottom-[8%] h-[3px] bg-[rgba(202,255,221,0.26)]" />
+          <div className="absolute left-[8%] right-[16%] bottom-[18%] h-[3px] bg-[rgba(202,255,221,0.2)]" />
+          <div className="absolute left-[20%] right-[10%] bottom-[30%] h-[3px] bg-[rgba(202,255,221,0.18)]" />
+          <div className="absolute left-[34%] right-[22%] bottom-[42%] h-[3px] bg-[rgba(202,255,221,0.14)]" />
+        </div>
+
+        <div
+          className="absolute left-0 right-0 bottom-0 h-[32vh]"
+          style={{
+            transform: `translate(${mouse.x * 12}px, ${mouse.y * 6}px)`,
+            background:
+              "linear-gradient(to top, rgba(5,34,61,0.5), rgba(5,34,61,0.15), transparent)",
+          }}
+        >
+          <div className="absolute left-[3%] bottom-[4%] h-[14vh] w-[28vw] rounded-[46%] bg-[radial-gradient(circle_at_50%_50%,rgba(9,96,149,0.42),rgba(4,39,74,0.22),transparent_70%)]" />
+          <div className="absolute right-[2%] bottom-[0%] h-[18vh] w-[30vw] rounded-[46%] bg-[radial-gradient(circle_at_50%_50%,rgba(7,83,132,0.38),rgba(4,39,74,0.2),transparent_70%)]" />
+          <div className="absolute left-[32%] bottom-[2%] h-[16vh] w-[36vw] rounded-[46%] bg-[radial-gradient(circle_at_50%_50%,rgba(7,76,126,0.35),rgba(4,39,74,0.18),transparent_70%)]" />
+        </div>
+
+        <div
+          className="absolute left-[6%] bottom-[0%] h-[22vh] w-[34vw]"
+          style={{ transform: `translate(${mouse.x * 16}px, ${mouse.y * 8}px)` }}
+        >
+          {Array.from({ length: 11 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute bottom-0 rounded-t-[100%]"
+              style={{
+                left: `${i * 8}%`,
+                width: `${22 + (i % 4) * 10}px`,
+                height: `${90 + (i % 5) * 22}px`,
+                background:
+                  i % 3 === 0
+                    ? "linear-gradient(to top, rgba(76,199,145,0.6), rgba(122,250,184,0.26), transparent)"
+                    : i % 3 === 1
+                    ? "linear-gradient(to top, rgba(49,174,121,0.54), rgba(112,240,172,0.2), transparent)"
+                    : "linear-gradient(to top, rgba(29,124,104,0.56), rgba(93,207,190,0.18), transparent)",
+                animation: `sway ${4.6 + i * 0.25}s ease-in-out infinite`,
+                animationDelay: `${i * 0.12}s`,
+              }}
+            />
+          ))}
+        </div>
+
+        <div
+          className="absolute right-[0%] bottom-[0%] h-[22vh] w-[28vw]"
+          style={{ transform: `translate(${mouse.x * 18}px, ${mouse.y * 7}px)` }}
+        >
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div
+              key={i}
+              className="absolute bottom-0 rounded-t-[100%]"
+              style={{
+                left: `${i * 11}%`,
+                width: `${18 + (i % 3) * 9}px`,
+                height: `${70 + (i % 4) * 20}px`,
+                background:
+                  i % 2 === 0
+                    ? "linear-gradient(to top, rgba(104,24,66,0.56), rgba(154,46,103,0.2), transparent)"
+                    : "linear-gradient(to top, rgba(70,15,47,0.54), rgba(122,35,84,0.22), transparent)",
+                animation: `sway ${4.8 + i * 0.28}s ease-in-out infinite`,
+                animationDelay: `${i * 0.18}s`,
+              }}
+            />
+          ))}
+        </div>
+
+        {ambientBubbles.map((b) => (
+          <span
+            key={b.id}
+            className="absolute bottom-[-60px] rounded-full border border-white/35 bg-white/10 backdrop-blur-sm"
+            style={{
+              left: b.left,
+              width: b.size,
+              height: b.size,
+              opacity: b.opacity,
+              animation: `riseBubble ${b.duration}s linear infinite`,
+              animationDelay: `${b.delay}s`,
+              boxShadow: "inset 0 0 8px rgba(255,255,255,0.22), 0 0 16px rgba(180,235,255,0.2)",
+            }}
+          />
+        ))}
       </div>
 
       {bursts.map((burst) => (
-        <div key={burst.id} className="pointer-events-none fixed inset-0 z-[60]">
-          {Array.from({ length: 9 }).map((_, i) => {
-            const angle = (Math.PI * 2 * i) / 9;
-            const dx = `${Math.cos(angle) * (26 + (i % 3) * 14)}px`;
-            const dy = `${Math.sin(angle) * (26 + (i % 4) * 12) - 35}px`;
+        <div key={burst.id} className="pointer-events-none fixed inset-0 z-[70]">
+          {Array.from({ length: 11 }).map((_, i) => {
+            const angle = (Math.PI * 2 * i) / 11;
+            const radius = 38 + (i % 4) * 18;
+            const dx = `${Math.cos(angle) * radius}px`;
+            const dy = `${Math.sin(angle) * radius - 34}px`;
 
             return (
               <span
                 key={i}
-                className="absolute h-3 w-3 rounded-full border border-cyan-100/60 bg-cyan-100/20 backdrop-blur-sm"
+                className="absolute rounded-full border border-white/60 bg-white/12 backdrop-blur-sm"
                 style={
                   {
                     left: burst.x,
                     top: burst.y,
+                    width: `${16 + (i % 3) * 7}px`,
+                    height: `${16 + (i % 3) * 7}px`,
                     "--dx": dx,
                     "--dy": dy,
-                    animation: "bubbleBurst 1.2s ease-out forwards",
-                    boxShadow: "0 0 18px rgba(164,240,255,0.4)",
+                    animation: "bubbleBurst 1.5s ease-out forwards",
+                    boxShadow:
+                      "inset 0 0 12px rgba(255,255,255,0.24), 0 0 24px rgba(171,230,255,0.42)",
                   } as React.CSSProperties
                 }
               />
             );
           })}
           <span
-            className="absolute h-5 w-5 rounded-full border border-cyan-100/70 bg-cyan-100/15"
+            className="absolute h-10 w-10 rounded-full border border-white/65 bg-white/10"
             style={{
               left: burst.x,
               top: burst.y,
-              transform: "translate(-50%, -50%)",
-              animation: "bubblePop 0.9s ease-out forwards",
+              animation: "bubbleRing 1.2s ease-out forwards",
+              boxShadow: "0 0 24px rgba(180,235,255,0.34)",
             }}
           />
         </div>
       ))}
 
-      <div className="relative z-10">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-6 py-6 lg:px-10">
-          <div className="flex items-center gap-3 text-cyan-100">
-            <div className="rounded-2xl border border-cyan-100/10 bg-white/5 p-2 backdrop-blur-md">
-              <Waves className="h-5 w-5" />
-            </div>
-            <div>
-              <div className="text-sm uppercase tracking-[0.25em] text-cyan-200/60">
-                Nandika’s
-              </div>
-              <div className="text-base font-medium">RL Dive Log</div>
-            </div>
-          </div>
-
-          <div className="hidden items-center gap-3 md:flex">
-            {[
-              ["Surface", "#hero"],
-              ["Notes", "#notes"],
-              ["Projects", "#projects"],
-              ["About", "#about"],
-            ].map(([label, href]) => (
-              <a
-                key={label}
-                href={href}
-                className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-cyan-50/80 backdrop-blur-md transition hover:bg-white/10"
-              >
-                {label}
-              </a>
-            ))}
-          </div>
-        </nav>
-
+      <main className="relative z-10">
         <section
           id="hero"
-          className="mx-auto flex min-h-screen max-w-7xl items-center px-6 pb-20 pt-8 lg:px-10"
+          className="relative min-h-screen px-6 pt-8 pb-20 lg:px-10"
         >
-          <div className="max-w-3xl rounded-[2rem] border border-cyan-100/10 bg-slate-950/28 p-8 backdrop-blur-xl md:p-10">
-            <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-100/5 px-4 py-2 text-sm text-cyan-100/80 backdrop-blur-md">
-              <Sparkles className="h-4 w-4" />
-              Fully 3D underwater exploration site for my reinforcement learning journey
+          <nav className="mx-auto flex max-w-7xl items-center justify-between">
+            <div className="rounded-full border border-white/20 bg-white/10 px-4 py-2 backdrop-blur-md">
+              <span className="text-sm tracking-[0.22em] text-white/90">
+                RL DIVE LOG
+              </span>
             </div>
 
-            <h1 className="text-5xl font-semibold leading-[0.95] tracking-tight text-white md:text-7xl">
-              I’m diving deeper
-              <span className="block bg-gradient-to-r from-cyan-200 via-sky-300 to-violet-300 bg-clip-text text-transparent">
-                into reinforcement learning
-              </span>
-            </h1>
+            <div className="hidden md:flex items-center gap-3">
+              {[
+                ["Surface", "#hero"],
+                ["Notes", "#notes"],
+                ["Projects", "#projects"],
+                ["About", "#about"],
+              ].map(([label, href]) => (
+                <a
+                  key={label}
+                  href={href}
+                  className="rounded-full border border-white/15 bg-white/8 px-4 py-2 text-sm text-white/85 backdrop-blur-md transition hover:bg-white/12"
+                >
+                  {label}
+                </a>
+              ))}
+            </div>
+          </nav>
 
-            <p className="mt-6 max-w-2xl text-lg leading-8 text-cyan-50/82 md:text-xl">
-              Scroll through five underwater worlds — Sunlit Surface, Blue Descent,
-              Coral Forest, Twilight Zone, and Abyssal Floor — while I upload lecture
-              notes, experiments, and projects.
-            </p>
+          <div className="mx-auto mt-10 grid max-w-7xl items-center gap-10 lg:grid-cols-[1.05fr_0.95fr]">
+            <div className="relative z-20 max-w-3xl">
+              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white/90 backdrop-blur-md">
+                <Sparkles className="h-4 w-4" />
+                underwater journal for my reinforcement learning journey
+              </div>
 
-            <div className="mt-10 flex flex-wrap gap-4">
+              <h1 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-tight text-white md:text-7xl">
+                Diving deeper
+                <span className="block text-white/95">into reinforcement learning</span>
+              </h1>
+
+              <p className="mt-6 max-w-2xl text-lg leading-8 text-white/86 md:text-xl">
+                Lecture notes, visual experiments, and projects gathered like
+                treasures in a glowing underwater world.
+              </p>
+
+              <div className="mt-10 flex flex-wrap gap-4">
+                <a
+                  href="#notes"
+                  className="rounded-full border border-white/20 bg-white/14 px-6 py-3 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/18"
+                >
+                  Explore notes
+                </a>
+                <a
+                  href="#projects"
+                  className="rounded-full border border-white/20 bg-[#79d6d1]/20 px-6 py-3 text-sm font-medium text-white backdrop-blur-md transition hover:bg-[#79d6d1]/28"
+                >
+                  View projects
+                </a>
+                <a
+                  href="https://github.com/"
+                  className="rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/15"
+                >
+                  <span className="flex items-center gap-2">
+                    <Github className="h-4 w-4" />
+                    GitHub
+                  </span>
+                </a>
+              </div>
+
               <a
                 href="#notes"
-                className="rounded-2xl border border-cyan-200/20 bg-cyan-300/15 px-6 py-3 text-sm font-medium text-cyan-50 backdrop-blur-md transition hover:scale-[1.02] hover:bg-cyan-300/20"
+                className="mt-10 inline-flex items-center gap-2 text-white/85"
               >
-                Explore the notes
-              </a>
-              <a
-                href="#projects"
-                className="rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-medium text-white/90 backdrop-blur-md transition hover:scale-[1.02] hover:bg-white/10"
-              >
-                View projects
-              </a>
-              <a
-                href="https://github.com/"
-                className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white/90 backdrop-blur-md transition hover:scale-[1.02] hover:bg-white/10"
-              >
-                <span className="flex items-center gap-2">
-                  <Github className="h-4 w-4" />
-                  GitHub
-                </span>
+                <ArrowDown className="h-5 w-5 animate-bounce" />
+                Scroll to descend
               </a>
             </div>
 
-            <div className="mt-10 flex flex-col gap-2 text-cyan-100/75">
-              <span>Click anywhere to release a tiny bubble burst.</span>
-              <span>Move your mouse to make the world drift with you.</span>
-              <span>Scroll to descend into different underwater biomes.</span>
-            </div>
-
-            <a href="#notes" className="mt-8 inline-flex items-center gap-2 text-cyan-100/80">
-              <ArrowDown className="h-5 w-5 animate-bounce" />
-              Scroll to descend
-            </a>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-6 py-16 lg:px-10">
-          <div className="grid gap-4 md:grid-cols-5">
-            {depthStages.map((stage) => (
+            <div className="relative h-[620px]">
               <div
-                key={stage.label}
-                className="rounded-3xl border border-white/10 bg-slate-950/28 p-5 backdrop-blur-xl"
+                className="absolute inset-0"
+                style={{
+                  transform: `translate(${mouse.x * 10}px, ${mouse.y * 8}px)`,
+                }}
               >
-                <div className="text-sm uppercase tracking-[0.22em] text-cyan-200/60">
-                  Depth zone
-                </div>
-                <div className="mt-2 text-lg font-medium text-cyan-100">
-                  {stage.label}
+                <div
+                  className="absolute left-[18%] top-[8%] h-[440px] w-[320px]"
+                  style={{ animation: "mermaidFloat 16s ease-in-out infinite" }}
+                >
+                  <div
+                    className="absolute left-[60px] top-[40px] h-[150px] w-[210px] rounded-[56%_44%_52%_48%/58%_50%_50%_42%]"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, #ff8f6f 0%, #ff654d 48%, #f24e39 100%)",
+                      boxShadow:
+                        "0 20px 40px rgba(255,87,64,0.16), inset -20px -12px 18px rgba(201,54,38,0.18)",
+                      animation: "hairFlow 4.5s ease-in-out infinite",
+                    }}
+                  />
+                  <div
+                    className="absolute left-[170px] top-[86px] h-[135px] w-[145px] rounded-[45%_55%_60%_40%/46%_48%_52%_54%]"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, #ff7f60 0%, #f15742 100%)",
+                      transform: "rotate(16deg)",
+                      animation: "hairFlow 5.2s ease-in-out infinite",
+                    }}
+                  />
+                  <div
+                    className="absolute left-[116px] top-[78px] h-[98px] w-[76px] rounded-full bg-[#ffe0cf]"
+                    style={{
+                      boxShadow: "inset -8px -6px 10px rgba(233,182,160,0.35)",
+                    }}
+                  />
+                  <div className="absolute left-[138px] top-[106px] h-[7px] w-[7px] rounded-full bg-[#1a2a42]" />
+                  <div className="absolute left-[171px] top-[106px] h-[7px] w-[7px] rounded-full bg-[#1a2a42]" />
+                  <div className="absolute left-[150px] top-[128px] h-[2px] w-[24px] rounded-full bg-[#d88f80]" />
+                  <div className="absolute left-[145px] top-[138px] h-[11px] w-[20px] rounded-b-full border-b border-[#c96b60]" />
+
+                  <div
+                    className="absolute left-[112px] top-[166px] h-[108px] w-[86px] rounded-[45%_45%_42%_42%/36%_36%_64%_64%] bg-[#ffe0cf]"
+                    style={{
+                      boxShadow: "inset -8px -10px 10px rgba(225,176,158,0.35)",
+                    }}
+                  />
+                  <div className="absolute left-[123px] top-[164px] h-[30px] w-[28px] rounded-[40%_60%_45%_55%] bg-[#8f75d7]" />
+                  <div className="absolute left-[160px] top-[164px] h-[30px] w-[28px] rounded-[60%_40%_55%_45%] bg-[#8f75d7]" />
+
+                  <div
+                    className="absolute left-[80px] top-[196px] h-[88px] w-[26px] rounded-full bg-[#ffe0cf]"
+                    style={{ transform: "rotate(26deg)" }}
+                  />
+                  <div
+                    className="absolute left-[197px] top-[208px] h-[84px] w-[24px] rounded-full bg-[#ffe0cf]"
+                    style={{ transform: "rotate(-28deg)" }}
+                  />
+
+                  <div
+                    className="absolute left-[115px] top-[248px] h-[214px] w-[112px] rounded-[44%_44%_50%_50%/18%_18%_82%_82%]"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, #88f0dc 0%, #66d8c7 28%, #50c6b8 52%, #69def0 100%)",
+                      boxShadow:
+                        "0 18px 34px rgba(95,233,220,0.12), inset 0 0 0 1px rgba(255,255,255,0.16)",
+                    }}
+                  />
+
+                  <div
+                    className="absolute left-[132px] top-[274px] h-[152px] w-[75px] rounded-[48%]"
+                    style={{
+                      background:
+                        "radial-gradient(circle, rgba(255,255,214,0.96) 0%, rgba(245,255,201,0.92) 16%, rgba(186,255,220,0.8) 34%, rgba(255,255,255,0) 62%)",
+                      mixBlendMode: "screen",
+                      filter: "blur(0.2px)",
+                    }}
+                  />
+
+                  <div
+                    className="absolute left-[84px] top-[410px] h-[95px] w-[92px] rounded-[0_100%_100%_100%]"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, rgba(220,245,255,0.96), rgba(139,222,243,0.78))",
+                      border: "1px solid rgba(255,255,255,0.34)",
+                      transform: "rotate(-26deg)",
+                      boxShadow: "0 0 24px rgba(196,242,255,0.22)",
+                      animation: "tailWave 2.6s ease-in-out infinite",
+                    }}
+                  />
+                  <div
+                    className="absolute left-[174px] top-[414px] h-[98px] w-[96px] rounded-[100%_0_100%_100%]"
+                    style={{
+                      background:
+                        "linear-gradient(180deg, rgba(220,245,255,0.96), rgba(139,222,243,0.78))",
+                      border: "1px solid rgba(255,255,255,0.34)",
+                      transform: "rotate(24deg)",
+                      boxShadow: "0 0 24px rgba(196,242,255,0.22)",
+                      animation: "tailWave 2.8s ease-in-out infinite",
+                    }}
+                  />
+
+                  <div
+                    className="absolute left-[90px] top-[420px] h-[70px] w-[175px]"
+                    style={{
+                      background:
+                        "radial-gradient(circle, rgba(227,250,255,0.62), rgba(183,240,255,0.16), transparent 70%)",
+                      filter: "blur(8px)",
+                    }}
+                  />
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </section>
 
-        <section id="notes" className="mx-auto max-w-7xl px-6 py-16 lg:px-10">
-          <div className="rounded-[2rem] border border-cyan-100/10 bg-slate-950/30 p-8 backdrop-blur-xl md:p-10">
+        <section className="px-6 pb-8 lg:px-10">
+          <div className="mx-auto max-w-7xl">
+            <div className="grid gap-4 md:grid-cols-3">
+              {[
+                [
+                  "Underwater notes",
+                  "Lecture notes collected like pages drifting through the sea.",
+                ],
+                [
+                  "Glowing experiments",
+                  "Visual RL ideas, intuitive demos, and concept explorations.",
+                ],
+                [
+                  "Project reef",
+                  "A curated collection of builds from deeper and deeper dives.",
+                ],
+              ].map(([title, text]) => (
+                <div
+                  key={title}
+                  className="rounded-[34px] border border-white/15 bg-white/8 p-6 backdrop-blur-xl"
+                >
+                  <h3 className="text-xl font-medium text-white">{title}</h3>
+                  <p className="mt-2 leading-7 text-white/75">{text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="notes" className="px-6 py-14 lg:px-10">
+          <div className="mx-auto max-w-7xl rounded-[40px] border border-white/15 bg-white/8 p-8 backdrop-blur-xl md:p-10">
             <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.28em] text-cyan-200/70">
+                <p className="text-sm uppercase tracking-[0.28em] text-white/70">
                   Dive log
                 </p>
                 <h2 className="mt-3 text-3xl font-semibold text-white md:text-4xl">
@@ -928,8 +633,8 @@ export default function RLUnderwaterQuestSite() {
                     onClick={() => setActiveTab(key)}
                     className={`rounded-full border px-4 py-2 text-sm backdrop-blur-md transition ${
                       activeTab === key
-                        ? "border-cyan-200/20 bg-cyan-300/15 text-cyan-50"
-                        : "border-white/10 bg-white/5 text-cyan-50/70"
+                        ? "border-white/25 bg-white/18 text-white"
+                        : "border-white/15 bg-white/8 text-white/72"
                     }`}
                   >
                     <span className="flex items-center gap-2">
@@ -946,16 +651,14 @@ export default function RLUnderwaterQuestSite() {
                 {notes.map((item) => (
                   <article
                     key={item.title}
-                    className="group rounded-[2rem] border border-cyan-100/10 bg-white/5 p-6 backdrop-blur-xl transition duration-300 hover:-translate-y-1 hover:bg-white/10"
+                    className="rounded-[30px] border border-white/15 bg-white/8 p-6 backdrop-blur-xl transition hover:bg-white/12"
                   >
-                    <div className="mb-4 inline-flex rounded-full border border-cyan-100/10 bg-cyan-100/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-cyan-100/70">
+                    <div className="mb-4 inline-flex rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs uppercase tracking-[0.18em] text-white/76">
                       {item.tag}
                     </div>
                     <h3 className="text-xl font-medium text-white">{item.title}</h3>
-                    <p className="mt-3 leading-7 text-cyan-50/70">{item.blurb}</p>
-                    <div className="mt-6 text-sm text-cyan-300 transition group-hover:translate-x-1">
-                      Open notes →
-                    </div>
+                    <p className="mt-3 leading-7 text-white/72">{item.blurb}</p>
+                    <div className="mt-6 text-sm text-white/88">Open notes →</div>
                   </article>
                 ))}
               </div>
@@ -964,15 +667,15 @@ export default function RLUnderwaterQuestSite() {
                 {projects.slice(0, 2).map((project, idx) => (
                   <div
                     key={project.title}
-                    className="rounded-[2rem] border border-white/10 bg-gradient-to-b from-white/8 to-white/[0.03] p-6 backdrop-blur-xl"
+                    className="rounded-[30px] border border-white/15 bg-white/8 p-6 backdrop-blur-xl"
                   >
-                    <div className="text-sm uppercase tracking-[0.22em] text-cyan-200/65">
+                    <div className="text-sm uppercase tracking-[0.22em] text-white/68">
                       0{idx + 1} • {project.type}
                     </div>
                     <h3 className="mt-3 text-2xl font-medium text-white">
                       {project.title}
                     </h3>
-                    <p className="mt-4 leading-7 text-cyan-50/72">
+                    <p className="mt-4 leading-7 text-white/72">
                       {project.description}
                     </p>
                   </div>
@@ -982,14 +685,14 @@ export default function RLUnderwaterQuestSite() {
           </div>
         </section>
 
-        <section id="projects" className="mx-auto max-w-7xl px-6 py-10 lg:px-10">
-          <div className="rounded-[2rem] border border-cyan-100/10 bg-slate-950/30 p-8 backdrop-blur-xl md:p-10">
+        <section id="projects" className="px-6 py-6 lg:px-10">
+          <div className="mx-auto max-w-7xl rounded-[40px] border border-white/15 bg-white/8 p-8 backdrop-blur-xl md:p-10">
             <div className="mb-8">
-              <p className="text-sm uppercase tracking-[0.28em] text-cyan-200/70">
+              <p className="text-sm uppercase tracking-[0.28em] text-white/70">
                 Treasure chest
               </p>
               <h2 className="mt-3 text-3xl font-semibold text-white md:text-4xl">
-                Projects from the ocean floor
+                Projects from the reef
               </h2>
             </div>
 
@@ -997,27 +700,24 @@ export default function RLUnderwaterQuestSite() {
               {projects.map((project, idx) => (
                 <div
                   key={project.title}
-                  className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-gradient-to-b from-white/8 to-white/[0.03] p-6 backdrop-blur-xl"
+                  className="rounded-[30px] border border-white/15 bg-white/8 p-6 backdrop-blur-xl"
                 >
-                  <div className="absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-3xl" />
-                  <div className="relative z-10">
-                    <div className="text-sm uppercase tracking-[0.22em] text-cyan-200/65">
-                      0{idx + 1} • {project.type}
-                    </div>
-                    <h3 className="mt-3 text-2xl font-medium text-white">
-                      {project.title}
-                    </h3>
-                    <p className="mt-4 leading-7 text-cyan-50/72">
-                      {project.description}
-                    </p>
-                    <div className="mt-8 flex gap-3">
-                      <button className="rounded-2xl border border-cyan-100/10 bg-cyan-100/10 px-4 py-3 text-sm text-cyan-50 transition hover:bg-cyan-100/15">
-                        Demo
-                      </button>
-                      <button className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/90 transition hover:bg-white/10">
-                        Code
-                      </button>
-                    </div>
+                  <div className="text-sm uppercase tracking-[0.22em] text-white/68">
+                    0{idx + 1} • {project.type}
+                  </div>
+                  <h3 className="mt-3 text-2xl font-medium text-white">
+                    {project.title}
+                  </h3>
+                  <p className="mt-4 leading-7 text-white/72">
+                    {project.description}
+                  </p>
+                  <div className="mt-8 flex gap-3">
+                    <button className="rounded-full border border-white/18 bg-white/12 px-4 py-3 text-sm text-white transition hover:bg-white/18">
+                      Demo
+                    </button>
+                    <button className="rounded-full border border-white/18 bg-white/10 px-4 py-3 text-sm text-white transition hover:bg-white/16">
+                      Code
+                    </button>
                   </div>
                 </div>
               ))}
@@ -1025,27 +725,24 @@ export default function RLUnderwaterQuestSite() {
           </div>
         </section>
 
-        <section
-          id="about"
-          className="mx-auto max-w-5xl px-6 py-20 text-center lg:px-10"
-        >
-          <div className="rounded-[2rem] border border-cyan-100/10 bg-slate-950/30 px-6 py-14 backdrop-blur-xl md:px-10">
-            <p className="text-sm uppercase tracking-[0.28em] text-cyan-200/70">
+        <section id="about" className="px-6 py-20 lg:px-10">
+          <div className="mx-auto max-w-5xl rounded-[42px] border border-white/15 bg-white/8 px-6 py-14 text-center backdrop-blur-xl md:px-10">
+            <p className="text-sm uppercase tracking-[0.28em] text-white/70">
               Mission
             </p>
             <h2 className="mt-4 text-3xl font-semibold text-white md:text-5xl">
-              Reinforcement learning feels like deep sea diving.
+              Reinforcement learning feels like underwater exploration.
             </h2>
-            <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-cyan-50/75">
-              The deeper I go, the stranger and more beautiful the ecosystem becomes:
-              rewards, policies, uncertainty, adaptation, exploration, and emergent
-              behavior. This website is part notebook, part lab, and part story of
-              descent.
+            <p className="mx-auto mt-6 max-w-3xl text-lg leading-8 text-white/75">
+              The deeper I go, the stranger and more beautiful the ecosystem
+              becomes: rewards, policies, uncertainty, adaptation, exploration,
+              and emergent behavior.
             </p>
+
             <div className="mt-10 flex flex-wrap justify-center gap-4">
               <a
                 href="https://github.com/"
-                className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm text-white/90 backdrop-blur-md transition hover:bg-white/10"
+                className="rounded-full border border-white/18 bg-white/10 px-5 py-3 text-sm text-white backdrop-blur-md transition hover:bg-white/16"
               >
                 <span className="flex items-center gap-2">
                   <Github className="h-4 w-4" />
@@ -1054,7 +751,7 @@ export default function RLUnderwaterQuestSite() {
               </a>
               <a
                 href="https://vercel.com/"
-                className="rounded-2xl border border-cyan-200/20 bg-cyan-300/15 px-5 py-3 text-sm text-cyan-50 backdrop-blur-md transition hover:bg-cyan-300/20"
+                className="rounded-full border border-white/18 bg-white/12 px-5 py-3 text-sm text-white backdrop-blur-md transition hover:bg-white/18"
               >
                 <span className="flex items-center gap-2">
                   <ExternalLink className="h-4 w-4" />
@@ -1064,7 +761,7 @@ export default function RLUnderwaterQuestSite() {
             </div>
           </div>
         </section>
-      </div>
+      </main>
     </div>
   );
 }
