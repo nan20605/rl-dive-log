@@ -1,12 +1,28 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Waves, Fish, BookOpen, FolderOpen, Sparkles, Github, ExternalLink, ArrowDown } from "lucide-react";
 
 export default function RLUnderwaterQuestSite() {
+  const [mouse, setMouse] = useState({ x: 0, y: 0 });
+
+  useEffect(() => {
+    const handleMove = (e: MouseEvent) => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 2;
+      const y = (e.clientY / window.innerHeight - 0.5) * 2;
+      setMouse({ x, y });
+    };
+
+    window.addEventListener("mousemove", handleMove);
+    return () => window.removeEventListener("mousemove", handleMove);
+  }, []);
   const [activeTab, setActiveTab] = useState("notes");
   const { scrollYProgress } = useScroll();
+  const bgY = useTransform(scrollYProgress, [0, 1], [0, -140]);
+  const midY = useTransform(scrollYProgress, [0, 1], [0, -220]);
+  const frontY = useTransform(scrollYProgress, [0, 1], [0, -320]);
+  const mermaidY = useTransform(scrollYProgress, [0, 1], [0, -120]);
   const depthLabel = useTransform(
     scrollYProgress,
     [0, 0.2, 0.45, 0.7, 1],
@@ -77,15 +93,17 @@ export default function RLUnderwaterQuestSite() {
 
   const bubbles = useMemo(
     () =>
-      Array.from({ length: 28 }, (_, i) => ({
+      Array.from({ length: 40 }, (_, i) => ({
         id: i,
-        left: `${2 + i * 3.5}%`,
-        delay: `${(i % 7) * 0.7}s`,
-        duration: `${9 + (i % 5)}s`,
-        size: `${8 + (i % 4) * 7}px`,
+        left: `${2 + i * 2.45}%`,
+        delay: `${(i % 8) * 0.65}s`,
+        duration: `${8 + (i % 6)}s`,
+        size: `${8 + (i % 5) * 7}px`,
       })),
     []
   );
+
+  const corals = [110, 145, 92, 168, 124, 150, 98, 178, 118];
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#020816] text-white">
@@ -112,6 +130,21 @@ export default function RLUnderwaterQuestSite() {
           0%, 100% { opacity: 0.4; }
           50% { opacity: 1; }
         }
+        @keyframes mermaidSwim {
+          0% { transform: translateX(-12vw) translateY(0px) rotate(-4deg); }
+          25% { transform: translateX(12vw) translateY(-16px) rotate(2deg); }
+          50% { transform: translateX(28vw) translateY(10px) rotate(6deg); }
+          75% { transform: translateX(46vw) translateY(-12px) rotate(-2deg); }
+          100% { transform: translateX(64vw) translateY(4px) rotate(4deg); }
+        }
+        @keyframes finWave {
+          0%, 100% { transform: rotate(-8deg); }
+          50% { transform: rotate(10deg); }
+        }
+        @keyframes coralPulse {
+          0%, 100% { filter: drop-shadow(0 0 10px rgba(110,231,255,0.18)); opacity: 0.82; }
+          50% { filter: drop-shadow(0 0 22px rgba(167,139,250,0.3)); opacity: 1; }
+        }
       `}</style>
 
       <motion.div
@@ -124,9 +157,23 @@ export default function RLUnderwaterQuestSite() {
         <motion.div className="mt-1 font-medium text-cyan-100">{depthLabel}</motion.div>
       </div>
 
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(71,212,255,0.18),_transparent_35%),linear-gradient(to_bottom,_#0a2742_0%,_#072038_18%,_#04152a_40%,_#020d1c_70%,_#020816_100%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,_rgba(95,225,255,0.12),_transparent_18%),radial-gradient(circle_at_80%_10%,_rgba(126,87,255,0.14),_transparent_18%),radial-gradient(circle_at_45%_55%,_rgba(34,165,195,0.10),_transparent_24%)]" />
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <motion.div style={{ y: bgY }} className="absolute inset-0">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(71,212,255,0.18),_transparent_35%),linear-gradient(to_bottom,_#0a2742_0%,_#072038_18%,_#04152a_40%,_#020d1c_70%,_#020816_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,_rgba(95,225,255,0.12),_transparent_18%),radial-gradient(circle_at_80%_10%,_rgba(126,87,255,0.14),_transparent_18%),radial-gradient(circle_at_45%_55%,_rgba(34,165,195,0.10),_transparent_24%)]" />
+        </motion.div>
+
+        <motion.div
+          style={{ x: mouse.x * 10, y: mouse.y * 8 }}
+          className="absolute inset-0 bg-[radial-gradient(circle_at_30%_25%,_rgba(140,240,255,0.07),_transparent_18%),radial-gradient(circle_at_75%_18%,_rgba(120,180,255,0.05),_transparent_16%)]"
+        />
+
+        <motion.div style={{ y: midY }} className="absolute inset-0">
+          <div className="absolute left-[8%] top-[16%] h-56 w-56 rounded-full bg-cyan-200/5 blur-3xl" />
+          <div className="absolute right-[12%] top-[24%] h-72 w-72 rounded-full bg-violet-300/5 blur-3xl" />
+          <div className="absolute left-[20%] top-[42%] h-80 w-80 rounded-full bg-sky-300/5 blur-3xl" />
+        </motion.div>
+
         {bubbles.map((bubble) => (
           <span
             key={bubble.id}
@@ -141,6 +188,41 @@ export default function RLUnderwaterQuestSite() {
             }}
           />
         ))}
+
+        <motion.div
+          style={{ y: mermaidY, x: mouse.x * 16 }}
+          className="absolute left-[-8%] top-[22%] h-40 w-56 opacity-90"
+        >
+          <div style={{ animation: "mermaidSwim 16s ease-in-out infinite" }} className="relative h-full w-full">
+            <div className="absolute left-10 top-12 h-7 w-7 rounded-full bg-rose-100/80 shadow-[0_0_18px_rgba(255,220,240,0.25)]" />
+            <div className="absolute left-[70px] top-[58px] h-12 w-20 rounded-full bg-gradient-to-r from-fuchsia-200/70 to-violet-300/65" />
+            <div className="absolute left-[128px] top-[56px] h-6 w-14 rounded-full bg-gradient-to-r from-cyan-200/65 to-emerald-300/55" />
+            <div className="absolute left-[138px] top-[44px] h-10 w-10 rounded-tr-[90%] rounded-bl-[90%] bg-cyan-200/55" style={{ animation: "finWave 2.2s ease-in-out infinite" }} />
+            <div className="absolute left-[138px] top-[68px] h-10 w-10 rounded-br-[90%] rounded-tl-[90%] bg-cyan-300/45" style={{ animation: "finWave 2.2s ease-in-out infinite", animationDelay: "0.2s" }} />
+            <div className="absolute left-[82px] top-[46px] h-4 w-8 rounded-full bg-fuchsia-200/55 rotate-[-25deg]" />
+            <div className="absolute left-[88px] top-[76px] h-4 w-8 rounded-full bg-fuchsia-200/45 rotate-[25deg]" />
+            <div className="absolute left-6 top-6 h-16 w-14 rounded-full bg-gradient-to-b from-violet-300/25 to-transparent blur-xl" />
+          </div>
+        </motion.div>
+
+        <motion.div style={{ y: frontY, x: mouse.x * 22 }} className="absolute inset-x-0 bottom-0 h-[34vh]">
+          <div className="absolute inset-x-0 bottom-0 h-full bg-gradient-to-t from-emerald-950/70 via-teal-900/18 to-transparent" />
+          <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between px-6 md:px-12">
+            {corals.map((h, i) => (
+              <div key={i} className="relative flex items-end gap-2">
+                <div
+                  className="w-5 rounded-t-full bg-gradient-to-t from-emerald-800 via-cyan-300/65 to-cyan-100/40"
+                  style={{ height: `${h}px`, animation: `sway ${4 + (i % 3)}s ease-in-out infinite, coralPulse ${3.5 + (i % 2)}s ease-in-out infinite`, animationDelay: `${i * 0.22}s` }}
+                />
+                <div
+                  className="w-4 rounded-t-full bg-gradient-to-t from-fuchsia-900 via-violet-300/70 to-cyan-100/35"
+                  style={{ height: `${Math.max(60, h - 34)}px`, animation: `sway ${4.8 + (i % 3)}s ease-in-out infinite, coralPulse ${4.1 + (i % 2)}s ease-in-out infinite`, animationDelay: `${i * 0.18}s` }}
+                />
+                <div className="absolute bottom-[65%] left-1/2 h-4 w-4 rounded-full bg-cyan-200/25 blur-md" />
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </div>
 
       <section className="relative min-h-screen">
