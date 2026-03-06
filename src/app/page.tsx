@@ -2,9 +2,26 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
-import { Waves, Fish, BookOpen, FolderOpen, Sparkles, Github, ExternalLink, ArrowDown } from "lucide-react";
+import {
+  Waves,
+  Fish,
+  BookOpen,
+  FolderOpen,
+  Sparkles,
+  Github,
+  ExternalLink,
+  ArrowDown,
+} from "lucide-react";
+
+type TabKey = "notes" | "projects";
+
+const tabs = [
+  { key: "notes" as const, label: "Notes", Icon: BookOpen },
+  { key: "projects" as const, label: "Projects", Icon: FolderOpen },
+];
 
 export default function RLUnderwaterQuestSite() {
+  const [activeTab, setActiveTab] = useState<TabKey>("notes");
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
@@ -17,12 +34,14 @@ export default function RLUnderwaterQuestSite() {
     window.addEventListener("mousemove", handleMove);
     return () => window.removeEventListener("mousemove", handleMove);
   }, []);
-  const [activeTab, setActiveTab] = useState("notes");
+
   const { scrollYProgress } = useScroll();
+
   const bgY = useTransform(scrollYProgress, [0, 1], [0, -140]);
   const midY = useTransform(scrollYProgress, [0, 1], [0, -220]);
   const frontY = useTransform(scrollYProgress, [0, 1], [0, -320]);
   const mermaidY = useTransform(scrollYProgress, [0, 1], [0, -120]);
+
   const depthLabel = useTransform(
     scrollYProgress,
     [0, 0.2, 0.45, 0.7, 1],
@@ -111,8 +130,8 @@ export default function RLUnderwaterQuestSite() {
         @keyframes floatUp {
           0% { transform: translateY(60px) translateX(0px); opacity: 0; }
           15% { opacity: 0.45; }
-          50% { transform: translateY(-45vh) translateX(8px); opacity: 0.35; }
-          100% { transform: translateY(-110vh) translateX(-8px); opacity: 0; }
+          50% { transform: translateY(-45vh) translateX(10px); opacity: 0.35; }
+          100% { transform: translateY(-110vh) translateX(-10px); opacity: 0; }
         }
         @keyframes sway {
           0%, 100% { transform: translateX(0px) rotate(0deg); }
@@ -197,8 +216,14 @@ export default function RLUnderwaterQuestSite() {
             <div className="absolute left-10 top-12 h-7 w-7 rounded-full bg-rose-100/80 shadow-[0_0_18px_rgba(255,220,240,0.25)]" />
             <div className="absolute left-[70px] top-[58px] h-12 w-20 rounded-full bg-gradient-to-r from-fuchsia-200/70 to-violet-300/65" />
             <div className="absolute left-[128px] top-[56px] h-6 w-14 rounded-full bg-gradient-to-r from-cyan-200/65 to-emerald-300/55" />
-            <div className="absolute left-[138px] top-[44px] h-10 w-10 rounded-tr-[90%] rounded-bl-[90%] bg-cyan-200/55" style={{ animation: "finWave 2.2s ease-in-out infinite" }} />
-            <div className="absolute left-[138px] top-[68px] h-10 w-10 rounded-br-[90%] rounded-tl-[90%] bg-cyan-300/45" style={{ animation: "finWave 2.2s ease-in-out infinite", animationDelay: "0.2s" }} />
+            <div
+              className="absolute left-[138px] top-[44px] h-10 w-10 rounded-tr-[90%] rounded-bl-[90%] bg-cyan-200/55"
+              style={{ animation: "finWave 2.2s ease-in-out infinite" }}
+            />
+            <div
+              className="absolute left-[138px] top-[68px] h-10 w-10 rounded-br-[90%] rounded-tl-[90%] bg-cyan-300/45"
+              style={{ animation: "finWave 2.2s ease-in-out infinite", animationDelay: "0.2s" }}
+            />
             <div className="absolute left-[82px] top-[46px] h-4 w-8 rounded-full bg-fuchsia-200/55 rotate-[-25deg]" />
             <div className="absolute left-[88px] top-[76px] h-4 w-8 rounded-full bg-fuchsia-200/45 rotate-[25deg]" />
             <div className="absolute left-6 top-6 h-16 w-14 rounded-full bg-gradient-to-b from-violet-300/25 to-transparent blur-xl" />
@@ -212,11 +237,19 @@ export default function RLUnderwaterQuestSite() {
               <div key={i} className="relative flex items-end gap-2">
                 <div
                   className="w-5 rounded-t-full bg-gradient-to-t from-emerald-800 via-cyan-300/65 to-cyan-100/40"
-                  style={{ height: `${h}px`, animation: `sway ${4 + (i % 3)}s ease-in-out infinite, coralPulse ${3.5 + (i % 2)}s ease-in-out infinite`, animationDelay: `${i * 0.22}s` }}
+                  style={{
+                    height: `${h}px`,
+                    animation: `sway ${4 + (i % 3)}s ease-in-out infinite, coralPulse ${3.5 + (i % 2)}s ease-in-out infinite`,
+                    animationDelay: `${i * 0.22}s`,
+                  }}
                 />
                 <div
                   className="w-4 rounded-t-full bg-gradient-to-t from-fuchsia-900 via-violet-300/70 to-cyan-100/35"
-                  style={{ height: `${Math.max(60, h - 34)}px`, animation: `sway ${4.8 + (i % 3)}s ease-in-out infinite, coralPulse ${4.1 + (i % 2)}s ease-in-out infinite`, animationDelay: `${i * 0.18}s` }}
+                  style={{
+                    height: `${Math.max(60, h - 34)}px`,
+                    animation: `sway ${4.8 + (i % 3)}s ease-in-out infinite, coralPulse ${4.1 + (i % 2)}s ease-in-out infinite`,
+                    animationDelay: `${i * 0.18}s`,
+                  }}
                 />
                 <div className="absolute bottom-[65%] left-1/2 h-4 w-4 rounded-full bg-cyan-200/25 blur-md" />
               </div>
@@ -236,6 +269,7 @@ export default function RLUnderwaterQuestSite() {
               <div className="text-base font-medium">RL Dive Log</div>
             </div>
           </div>
+
           <div className="hidden items-center gap-3 md:flex">
             {[
               ["Surface", "#hero"],
@@ -254,7 +288,10 @@ export default function RLUnderwaterQuestSite() {
           </div>
         </nav>
 
-        <div id="hero" className="relative z-10 mx-auto grid min-h-[calc(100vh-88px)] max-w-7xl gap-12 px-6 pb-20 pt-4 lg:grid-cols-[1.15fr_0.85fr] lg:px-10">
+        <div
+          id="hero"
+          className="relative z-10 mx-auto grid min-h-[calc(100vh-88px)] max-w-7xl gap-12 px-6 pb-20 pt-4 lg:grid-cols-[1.15fr_0.85fr] lg:px-10"
+        >
           <div className="flex flex-col justify-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -310,7 +347,10 @@ export default function RLUnderwaterQuestSite() {
                 href="https://github.com/"
                 className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-medium text-white/90 backdrop-blur-md transition hover:scale-[1.02] hover:bg-white/10"
               >
-                <span className="flex items-center gap-2"><Github className="h-4 w-4" /> GitHub</span>
+                <span className="flex items-center gap-2">
+                  <Github className="h-4 w-4" />
+                  GitHub
+                </span>
               </a>
             </motion.div>
 
@@ -344,9 +384,15 @@ export default function RLUnderwaterQuestSite() {
               <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_20%,_rgba(147,233,255,0.22),_transparent_30%),linear-gradient(to_bottom,_rgba(4,22,41,0.25),_rgba(2,10,24,0.88))]" />
               <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-cyan-200/10 to-transparent" />
 
-              <div className="absolute left-1/2 top-16 h-28 w-28 -translate-x-1/2 rounded-full bg-cyan-200/10 blur-2xl" style={{ animation: "pulseGlow 3.8s ease-in-out infinite" }} />
+              <div
+                className="absolute left-1/2 top-16 h-28 w-28 -translate-x-1/2 rounded-full bg-cyan-200/10 blur-2xl"
+                style={{ animation: "pulseGlow 3.8s ease-in-out infinite" }}
+              />
 
-              <div className="absolute left-1/2 top-20 -translate-x-1/2" style={{ animation: "drift 4s ease-in-out infinite" }}>
+              <div
+                className="absolute left-1/2 top-20 -translate-x-1/2"
+                style={{ animation: "drift 4s ease-in-out infinite" }}
+              >
                 <div className="relative h-28 w-20">
                   <div className="absolute left-1/2 top-0 h-10 w-10 -translate-x-1/2 rounded-full border border-cyan-100/30 bg-slate-900/60" />
                   <div className="absolute left-1/2 top-8 h-12 w-6 -translate-x-1/2 rounded-full bg-slate-800/80" />
@@ -382,11 +428,19 @@ export default function RLUnderwaterQuestSite() {
                   <div key={i} className="relative flex items-end gap-2">
                     <div
                       className="w-4 rounded-t-full bg-gradient-to-t from-emerald-700 to-cyan-300/70 opacity-80"
-                      style={{ height: `${h}px`, animation: "sway 4s ease-in-out infinite", animationDelay: `${i * 0.3}s` }}
+                      style={{
+                        height: `${h}px`,
+                        animation: "sway 4s ease-in-out infinite",
+                        animationDelay: `${i * 0.3}s`,
+                      }}
                     />
                     <div
                       className="w-3 rounded-t-full bg-gradient-to-t from-fuchsia-800 to-violet-300/80 opacity-80"
-                      style={{ height: `${Math.max(50, h - 28)}px`, animation: "sway 4.8s ease-in-out infinite", animationDelay: `${i * 0.25}s` }}
+                      style={{
+                        height: `${Math.max(50, h - 28)}px`,
+                        animation: "sway 4.8s ease-in-out infinite",
+                        animationDelay: `${i * 0.25}s`,
+                      }}
                     />
                   </div>
                 ))}
@@ -459,11 +513,9 @@ export default function RLUnderwaterQuestSite() {
             <p className="text-sm uppercase tracking-[0.28em] text-cyan-200/70">Dive log</p>
             <h2 className="mt-3 text-3xl font-semibold text-white md:text-4xl">Lecture notes</h2>
           </div>
+
           <div className="flex gap-3">
-            {[
-              ["notes", "Notes", BookOpen],
-              ["projects", "Projects", FolderOpen],
-            ].map(([key, label, Icon]) => (
+            {tabs.map(({ key, label, Icon }) => (
               <button
                 key={key}
                 onClick={() => setActiveTab(key)}
@@ -473,7 +525,10 @@ export default function RLUnderwaterQuestSite() {
                     : "border-white/10 bg-white/5 text-cyan-50/70"
                 }`}
               >
-                <span className="flex items-center gap-2"><Icon className="h-4 w-4" /> {label}</span>
+                <span className="flex items-center gap-2">
+                  <Icon className="h-4 w-4" />
+                  {label}
+                </span>
               </button>
             ))}
           </div>
@@ -497,7 +552,10 @@ export default function RLUnderwaterQuestSite() {
                 <p className="mt-3 leading-7 text-cyan-50/70">{item.blurb}</p>
                 <div className="mt-6 flex flex-wrap gap-2">
                   {item.links.map((link) => (
-                    <span key={link} className="rounded-full border border-white/10 bg-slate-950/25 px-3 py-1 text-xs text-cyan-50/70">
+                    <span
+                      key={link}
+                      className="rounded-full border border-white/10 bg-slate-950/25 px-3 py-1 text-xs text-cyan-50/70"
+                    >
                       {link}
                     </span>
                   ))}
@@ -515,7 +573,9 @@ export default function RLUnderwaterQuestSite() {
                 key={project.title}
                 className="rounded-[2rem] border border-white/10 bg-gradient-to-b from-white/8 to-white/[0.03] p-6 backdrop-blur-xl"
               >
-                <div className="text-sm uppercase tracking-[0.22em] text-cyan-200/65">0{idx + 1} • {project.type}</div>
+                <div className="text-sm uppercase tracking-[0.22em] text-cyan-200/65">
+                  0{idx + 1} • {project.type}
+                </div>
                 <h3 className="mt-3 text-2xl font-medium text-white">{project.title}</h3>
                 <p className="mt-4 leading-7 text-cyan-50/72">{project.description}</p>
                 <div className="mt-5 text-sm text-cyan-100/70">{project.stack}</div>
@@ -528,7 +588,9 @@ export default function RLUnderwaterQuestSite() {
       <section id="projects" className="relative z-10 mx-auto max-w-7xl px-6 py-10 lg:px-10">
         <div className="mb-8">
           <p className="text-sm uppercase tracking-[0.28em] text-cyan-200/70">Treasure chest</p>
-          <h2 className="mt-3 text-3xl font-semibold text-white md:text-4xl">Projects from the ocean floor</h2>
+          <h2 className="mt-3 text-3xl font-semibold text-white md:text-4xl">
+            Projects from the ocean floor
+          </h2>
         </div>
 
         <div className="grid gap-5 lg:grid-cols-2 xl:grid-cols-4">
@@ -543,7 +605,9 @@ export default function RLUnderwaterQuestSite() {
             >
               <div className="absolute right-0 top-0 h-28 w-28 rounded-full bg-cyan-300/10 blur-3xl" />
               <div className="relative z-10">
-                <div className="text-sm uppercase tracking-[0.22em] text-cyan-200/65">0{idx + 1} • {project.type}</div>
+                <div className="text-sm uppercase tracking-[0.22em] text-cyan-200/65">
+                  0{idx + 1} • {project.type}
+                </div>
                 <h3 className="mt-3 text-2xl font-medium text-white">{project.title}</h3>
                 <p className="mt-4 leading-7 text-cyan-50/72">{project.description}</p>
                 <div className="mt-5 text-sm text-cyan-100/70">{project.stack}</div>
@@ -577,13 +641,19 @@ export default function RLUnderwaterQuestSite() {
               href="https://github.com/"
               className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm text-white/90 backdrop-blur-md transition hover:bg-white/10"
             >
-              <span className="flex items-center gap-2"><Github className="h-4 w-4" /> Source code</span>
+              <span className="flex items-center gap-2">
+                <Github className="h-4 w-4" />
+                Source code
+              </span>
             </a>
             <a
               href="https://vercel.com/"
               className="rounded-2xl border border-cyan-200/20 bg-cyan-300/15 px-5 py-3 text-sm text-cyan-50 backdrop-blur-md transition hover:bg-cyan-300/20"
             >
-              <span className="flex items-center gap-2"><ExternalLink className="h-4 w-4" /> Live site</span>
+              <span className="flex items-center gap-2">
+                <ExternalLink className="h-4 w-4" />
+                Live site
+              </span>
             </a>
           </div>
         </div>
