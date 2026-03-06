@@ -76,14 +76,17 @@ export default function Page() {
   const [activeTab, setActiveTab] = useState<TabKey>("notes");
   const [bursts, setBursts] = useState<BubbleBurst[]>([]);
 
-  const shellDots = useMemo(
+  const ambientBubbles = useMemo(
     () =>
-      Array.from({ length: 46 }, (_, i) => ({
+      Array.from({ length: 42 }, (_, i) => ({
         id: i,
-        left: `${4 + (i % 12) * 7.9}%`,
-        top: `${8 + Math.floor(i / 12) * 20}%`,
-        size: 3 + (i % 4),
-        opacity: 0.12 + (i % 5) * 0.04,
+        left: `${3 + (i % 12) * 8.1}%`,
+        startY: 8 + (i % 5) * 16,
+        size: 10 + (i % 5) * 7,
+        duration: 10 + (i % 4) * 2.4,
+        delay: (i % 9) * 0.65,
+        drift: -20 + (i % 7) * 8,
+        opacity: 0.18 + (i % 4) * 0.08,
       })),
     []
   );
@@ -110,14 +113,24 @@ export default function Page() {
           background: #0b4c7a;
         }
 
-        @keyframes mermaidFloat {
-          0%   { transform: translate(0px, 0px) rotate(-2deg) scale(1); }
-          18%  { transform: translate(78px, -18px) rotate(2deg) scale(1.01); }
-          36%  { transform: translate(165px, 10px) rotate(5deg) scale(1.02); }
-          56%  { transform: translate(98px, 48px) rotate(1deg) scale(1); }
-          74%  { transform: translate(8px, 22px) rotate(-3deg) scale(0.995); }
-          88%  { transform: translate(-34px, -8px) rotate(-5deg) scale(1); }
-          100% { transform: translate(0px, 0px) rotate(-2deg) scale(1); }
+        @keyframes riseBubble3D {
+          0% {
+            transform: translate3d(0px, 40px, 0px) scale(0.7);
+            opacity: 0;
+          }
+          12% {
+            opacity: 1;
+          }
+          30% {
+            transform: translate3d(calc(var(--drift) * 0.25), -22vh, 0px) scale(0.9);
+          }
+          60% {
+            transform: translate3d(calc(var(--drift) * 0.7), -62vh, 0px) scale(1.03);
+          }
+          100% {
+            transform: translate3d(var(--drift), -118vh, 0px) scale(1.16);
+            opacity: 0;
+          }
         }
 
         @keyframes bubbleBurst {
@@ -152,151 +165,45 @@ export default function Page() {
         <div
           className="absolute inset-0"
           style={{
-            background:
-              "linear-gradient(to bottom, #38c8ef 0%, #1ca8db 18%, #1279b1 40%, #0c5a8f 65%, #08395f 100%)",
+            backgroundImage:
+              "url('/underwater castle.png'), linear-gradient(to bottom, #38c8ef 0%, #1ca8db 18%, #1279b1 40%, #0c5a8f 65%, #08395f 100%)",
+            backgroundSize: "cover, cover",
+            backgroundPosition: "center center, center",
+            backgroundRepeat: "no-repeat, no-repeat",
           }}
         />
+
+        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.06),transparent_16%,transparent_68%,rgba(2,22,44,0.42))]" />
 
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage:
-              "url('/mermaid.jpg'), radial-gradient(circle at 84% 12%, rgba(255,255,255,0.26), transparent 24%)",
-            backgroundSize: "cover, auto",
-            backgroundPosition: "center top, center",
-            backgroundRepeat: "no-repeat, no-repeat",
-            opacity: 0.3,
-            filter: "saturate(1.08) blur(1px)",
+            background:
+              "radial-gradient(circle at 82% 14%, rgba(255,255,255,0.18), transparent 24%), radial-gradient(circle at 72% 10%, rgba(215,255,248,0.14), transparent 20%), radial-gradient(circle at 18% 18%, rgba(29,79,138,0.16), transparent 20%)",
           }}
         />
 
-        <div className="absolute inset-0 bg-[linear-gradient(to_bottom,rgba(255,255,255,0.06),transparent_18%,transparent_70%,rgba(2,22,44,0.34))]" />
-
-        <div className="absolute inset-0">
-          <div
-            className="absolute left-[-6%] top-[-1%] h-[54vh] w-[42vw] rounded-[48%]"
-            style={{
-              background:
-                "linear-gradient(180deg, rgba(54,149,121,0.55), rgba(22,108,128,0.38) 44%, rgba(13,77,118,0.08) 100%)",
-            }}
-          />
-          <div
-            className="absolute left-[2%] top-[19%] h-[34vh] w-[28vw]"
-            style={{
-              background:
-                "radial-gradient(circle at 38% 48%, rgba(16,105,130,0.38), rgba(8,57,93,0.08) 72%, transparent 78%)",
-            }}
-          />
-          <div
-            className="absolute right-[9%] top-[15%] h-[42vh] w-[24vw]"
-            style={{
-              background:
-                "radial-gradient(circle at 50% 36%, rgba(183,255,214,0.22), rgba(116,200,155,0.12) 42%, rgba(16,85,108,0.02) 78%)",
-            }}
-          />
-          <div
-            className="absolute right-[6%] bottom-[14%] h-[20vh] w-[18vw]"
-            style={{
-              background:
-                "radial-gradient(circle at 50% 50%, rgba(8,92,134,0.38), rgba(4,40,71,0.08) 72%, transparent 78%)",
-            }}
-          />
-          <div
-            className="absolute left-[0%] bottom-[0%] h-[24vh] w-[34vw]"
-            style={{
-              background:
-                "radial-gradient(circle at 52% 60%, rgba(8,79,123,0.42), rgba(4,36,67,0.14) 72%, transparent 82%)",
-            }}
-          />
-        </div>
-
-        <div className="absolute right-[11%] top-[15%] h-[42vh] w-[26vw]">
-          <div className="absolute bottom-0 left-[28%] h-[74%] w-[14%] rounded-t-[18px] bg-[linear-gradient(to_top,rgba(143,215,171,0.74),rgba(231,255,235,0.42))]" />
-          <div className="absolute bottom-0 left-[6%] h-[53%] w-[11%] rounded-t-[14px] bg-[linear-gradient(to_top,rgba(129,203,160,0.62),rgba(222,255,228,0.34))]" />
-          <div className="absolute bottom-0 left-[49%] h-[61%] w-[11%] rounded-t-[14px] bg-[linear-gradient(to_top,rgba(133,207,163,0.62),rgba(227,255,234,0.34))]" />
-          <div className="absolute bottom-0 left-[68%] h-[49%] w-[11%] rounded-t-[14px] bg-[linear-gradient(to_top,rgba(119,191,151,0.6),rgba(214,255,223,0.3))]" />
-          <div className="absolute bottom-0 left-[82%] h-[40%] w-[9%] rounded-t-[12px] bg-[linear-gradient(to_top,rgba(119,191,151,0.52),rgba(214,255,223,0.22))]" />
-          <div className="absolute left-[4%] right-[8%] bottom-[10%] h-[3px] bg-[rgba(224,255,231,0.22)]" />
-          <div className="absolute left-[10%] right-[16%] bottom-[20%] h-[3px] bg-[rgba(224,255,231,0.18)]" />
-          <div className="absolute left-[22%] right-[10%] bottom-[32%] h-[3px] bg-[rgba(224,255,231,0.15)]" />
-          <div className="absolute left-[34%] right-[22%] bottom-[44%] h-[3px] bg-[rgba(224,255,231,0.12)]" />
-        </div>
-
-        <div className="absolute left-[3%] top-[19%] h-[35vh] w-[31vw]">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute bottom-0 rounded-t-[100%]"
-              style={{
-                left: `${i * 11}%`,
-                width: `${32 + (i % 3) * 12}px`,
-                height: `${132 + (i % 4) * 28}px`,
-                background:
-                  i % 2 === 0
-                    ? "linear-gradient(to top, rgba(37,128,98,0.56), rgba(77,189,137,0.25), transparent)"
-                    : "linear-gradient(to top, rgba(23,109,108,0.54), rgba(70,179,156,0.2), transparent)",
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="absolute left-0 right-0 bottom-0 h-[31vh]">
-          <div className="absolute left-[1%] bottom-[2%] h-[18vh] w-[35vw] rounded-[48%] bg-[radial-gradient(circle_at_52%_54%,rgba(8,95,145,0.46),rgba(4,39,74,0.16),transparent_72%)]" />
-          <div className="absolute left-[28%] bottom-[0%] h-[16vh] w-[38vw] rounded-[48%] bg-[radial-gradient(circle_at_50%_56%,rgba(8,79,130,0.4),rgba(4,39,74,0.14),transparent_72%)]" />
-          <div className="absolute right-[0%] bottom-[0%] h-[18vh] w-[31vw] rounded-[48%] bg-[radial-gradient(circle_at_48%_56%,rgba(8,79,130,0.42),rgba(4,39,74,0.14),transparent_72%)]" />
-        </div>
-
-        <div className="absolute left-[6%] bottom-[0%] h-[23vh] w-[34vw]">
-          {Array.from({ length: 11 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute bottom-0 rounded-t-[100%]"
-              style={{
-                left: `${i * 8.3}%`,
-                width: `${22 + (i % 4) * 10}px`,
-                height: `${92 + (i % 5) * 22}px`,
-                background:
-                  i % 3 === 0
-                    ? "linear-gradient(to top, rgba(79,202,149,0.66), rgba(132,250,191,0.22), transparent)"
-                    : i % 3 === 1
-                    ? "linear-gradient(to top, rgba(44,171,118,0.58), rgba(114,242,173,0.18), transparent)"
-                    : "linear-gradient(to top, rgba(23,118,104,0.58), rgba(96,209,189,0.18), transparent)",
-              }}
-            />
-          ))}
-        </div>
-
-        <div className="absolute right-[0%] bottom-[0%] h-[22vh] w-[28vw]">
-          {Array.from({ length: 8 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute bottom-0 rounded-t-[100%]"
-              style={{
-                left: `${i * 11}%`,
-                width: `${18 + (i % 3) * 9}px`,
-                height: `${72 + (i % 4) * 20}px`,
-                background:
-                  i % 2 === 0
-                    ? "linear-gradient(to top, rgba(103,27,66,0.66), rgba(163,48,105,0.2), transparent)"
-                    : "linear-gradient(to top, rgba(75,15,48,0.62), rgba(125,36,86,0.22), transparent)",
-              }}
-            />
-          ))}
-        </div>
-
-        {shellDots.map((dot) => (
+        {ambientBubbles.map((b) => (
           <span
-            key={dot.id}
-            className="absolute rounded-full bg-white"
-            style={{
-              left: dot.left,
-              top: dot.top,
-              width: dot.size,
-              height: dot.size,
-              opacity: dot.opacity,
-              animation: "shimmer 5.5s ease-in-out infinite",
-              animationDelay: `${(dot.id % 7) * 0.4}s`,
-            }}
+            key={b.id}
+            className="absolute rounded-full border border-white/45"
+            style={
+              {
+                left: b.left,
+                bottom: `-${b.startY}px`,
+                width: `${b.size}px`,
+                height: `${b.size}px`,
+                opacity: b.opacity,
+                "--drift": `${b.drift}px`,
+                animation: `riseBubble3D ${b.duration}s linear infinite`,
+                animationDelay: `${b.delay}s`,
+                background:
+                  "radial-gradient(circle at 30% 28%, rgba(255,255,255,0.36), rgba(255,255,255,0.12) 52%, rgba(255,255,255,0.03) 100%)",
+                boxShadow:
+                  "inset 0 0 18px rgba(255,255,255,0.24), 0 0 22px rgba(178,234,255,0.28)",
+                backdropFilter: "blur(1px)",
+              } as React.CSSProperties
+            }
           />
         ))}
       </div>
@@ -370,91 +277,53 @@ export default function Page() {
             </div>
           </nav>
 
-          <div className="mx-auto mt-10 grid max-w-7xl items-center gap-8 lg:grid-cols-[1.02fr_0.98fr]">
-            <div className="relative z-20 max-w-3xl">
-              <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white/90 backdrop-blur-md">
-                <Sparkles className="h-4 w-4" />
-                underwater journal for my reinforcement learning journey
-              </div>
+          <div className="mx-auto mt-16 max-w-4xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm text-white/90 backdrop-blur-md">
+              <Sparkles className="h-4 w-4" />
+              underwater journal for my reinforcement learning journey
+            </div>
 
-              <h1 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-tight text-white md:text-7xl">
-                Diving deeper
-                <span className="block text-white/96">into reinforcement learning</span>
-              </h1>
+            <h1 className="mt-6 text-5xl font-semibold leading-[0.95] tracking-tight text-white md:text-7xl">
+              Diving deeper
+              <span className="block text-white/96">into reinforcement learning</span>
+            </h1>
 
-              <p className="mt-6 max-w-2xl text-lg leading-8 text-white/86 md:text-xl">
-                Lecture notes, visual experiments, and projects gathered like
-                treasures in a glowing underwater world.
-              </p>
+            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-white/86 md:text-xl">
+              Lecture notes, visual experiments, and projects gathered like
+              treasures in a glowing underwater world.
+            </p>
 
-              <div className="mt-10 flex flex-wrap gap-4">
-                <a
-                  href="#notes"
-                  className="rounded-full border border-white/20 bg-white/14 px-6 py-3 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/18"
-                >
-                  Explore notes
-                </a>
-                <a
-                  href="#projects"
-                  className="rounded-full border border-white/20 bg-[#79d6d1]/20 px-6 py-3 text-sm font-medium text-white backdrop-blur-md transition hover:bg-[#79d6d1]/28"
-                >
-                  View projects
-                </a>
-                <a
-                  href="https://github.com/"
-                  className="rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/15"
-                >
-                  <span className="flex items-center gap-2">
-                    <Github className="h-4 w-4" />
-                    GitHub
-                  </span>
-                </a>
-              </div>
-
+            <div className="mt-10 flex flex-wrap justify-center gap-4">
               <a
                 href="#notes"
-                className="mt-10 inline-flex items-center gap-2 text-white/84"
+                className="rounded-full border border-white/20 bg-white/14 px-6 py-3 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/18"
               >
-                <ArrowDown className="h-5 w-5 animate-bounce" />
-                Scroll to descend
+                Explore notes
+              </a>
+              <a
+                href="#projects"
+                className="rounded-full border border-white/20 bg-[#79d6d1]/20 px-6 py-3 text-sm font-medium text-white backdrop-blur-md transition hover:bg-[#79d6d1]/28"
+              >
+                View projects
+              </a>
+              <a
+                href="https://github.com/"
+                className="rounded-full border border-white/20 bg-white/10 px-5 py-3 text-sm font-medium text-white backdrop-blur-md transition hover:bg-white/15"
+              >
+                <span className="flex items-center gap-2">
+                  <Github className="h-4 w-4" />
+                  GitHub
+                </span>
               </a>
             </div>
 
-            <div className="relative h-[680px]">
-              <div
-                className="absolute left-[4%] top-[0%] w-[560px] max-w-[96%]"
-                style={{ animation: "mermaidFloat 16s ease-in-out infinite" }}
-              >
-                <div
-                  className="relative h-[660px] w-full"
-                  style={{
-                    filter: "drop-shadow(0 24px 34px rgba(6,24,48,0.22))",
-                  }}
-                >
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      backgroundImage: "url('/mermaid.jpg')",
-                      backgroundRepeat: "no-repeat",
-                      backgroundSize: "900px auto",
-                      backgroundPosition: "50% 64%",
-                      clipPath:
-                        "polygon(26% 19%, 31% 14%, 39% 12%, 51% 11%, 59% 13%, 67% 17%, 75% 25%, 85% 37%, 94% 49%, 99% 59%, 96% 67%, 88% 70%, 76% 70%, 69% 72%, 64% 82%, 59% 91%, 51% 99%, 42% 99%, 34% 93%, 27% 82%, 21% 72%, 13% 63%, 7% 55%, 2% 46%, 3% 39%, 9% 31%, 16% 24%)",
-                    }}
-                  />
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      background:
-                        "radial-gradient(circle at 50% 66%, rgba(235,255,221,0.3), rgba(255,255,255,0.05) 28%, transparent 50%)",
-                      mixBlendMode: "screen",
-                      clipPath:
-                        "polygon(30% 35%, 38% 30%, 48% 29%, 58% 31%, 66% 37%, 69% 46%, 67% 58%, 63% 71%, 57% 83%, 49% 94%, 40% 92%, 34% 84%, 30% 70%, 27% 54%)",
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
+            <a
+              href="#notes"
+              className="mt-10 inline-flex items-center gap-2 text-white/84"
+            >
+              <ArrowDown className="h-5 w-5 animate-bounce" />
+              Scroll to descend
+            </a>
           </div>
         </section>
 
