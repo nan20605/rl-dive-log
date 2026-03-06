@@ -9,6 +9,7 @@ import {
   Github,
   Sparkles,
 } from "lucide-react";
+import { MermaidSwimmer } from "./MermaidSwimmer";
 
 type TabKey = "notes" | "projects";
 type BubbleBurst = { id: number; x: number; y: number };
@@ -159,6 +160,40 @@ export default function Page() {
           0%, 100% { opacity: 0.72; }
           50% { opacity: 1; }
         }
+
+        @keyframes mermaid-swim {
+          0% {
+            transform: translate(-10vw, 15vh) scale(0.5);
+          }
+          12% {
+            transform: translate(25vw, 8vh) scale(0.5);
+          }
+          25% {
+            transform: translate(55vw, 25vh) scale(0.5);
+          }
+          37% {
+            transform: translate(85vw, 12vh) scale(0.5);
+          }
+          50% {
+            transform: translate(95vw, 45vh) scale(0.5);
+          }
+          62% {
+            transform: translate(60vw, 75vh) scale(0.5);
+          }
+          75% {
+            transform: translate(30vw, 85vh) scale(0.5);
+          }
+          87% {
+            transform: translate(5vw, 55vh) scale(0.5);
+          }
+          100% {
+            transform: translate(-10vw, 15vh) scale(0.5);
+          }
+        }
+
+        .animate-mermaid-swim {
+          animation: mermaid-swim 32s ease-in-out infinite;
+        }
       `}</style>
 
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
@@ -181,6 +216,8 @@ export default function Page() {
               "radial-gradient(circle at 82% 14%, rgba(255,255,255,0.18), transparent 24%), radial-gradient(circle at 72% 10%, rgba(215,255,248,0.14), transparent 20%), radial-gradient(circle at 18% 18%, rgba(29,79,138,0.16), transparent 20%)",
           }}
         />
+
+        <MermaidSwimmer />
 
         {ambientBubbles.map((b) => (
           <span
