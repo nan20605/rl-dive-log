@@ -101,7 +101,7 @@ export default function Page() {
 
   return (
     <div
-      className="min-h-screen overflow-x-hidden bg-[#0b4c7a] text-white"
+      className="min-h-screen overflow-x-hidden text-white"
       onClick={spawnBurst}
     >
       <style>{`
@@ -110,7 +110,7 @@ export default function Page() {
         }
 
         body {
-          background: #0b4c7a;
+          background: transparent;
         }
 
         @keyframes riseBubble3D {
@@ -165,11 +165,10 @@ export default function Page() {
         <div
           className="absolute inset-0"
           style={{
-            backgroundImage:
-              "url('/underwater castle.png'), linear-gradient(to bottom, #38c8ef 0%, #1ca8db 18%, #1279b1 40%, #0c5a8f 65%, #08395f 100%)",
-            backgroundSize: "cover, cover",
-            backgroundPosition: "center center, center",
-            backgroundRepeat: "no-repeat, no-repeat",
+            backgroundImage: "url('/underwater castle.png')",
+            backgroundSize: "cover",
+            backgroundPosition: "center center",
+            backgroundRepeat: "no-repeat",
           }}
         />
 
