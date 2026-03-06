@@ -9,7 +9,6 @@ import {
   Github,
   Sparkles,
 } from "lucide-react";
-import { MermaidSwimmer } from "./MermaidSwimmer";
 
 type TabKey = "notes" | "projects";
 type BubbleBurst = { id: number; x: number; y: number };
@@ -161,38 +160,34 @@ export default function Page() {
           50% { opacity: 1; }
         }
 
-        @keyframes mermaid-swim {
+        @keyframes mermaidHeroSwim {
           0% {
-            transform: translate(-10vw, 15vh) scale(0.5);
-          }
-          12% {
-            transform: translate(25vw, 8vh) scale(0.5);
-          }
-          25% {
-            transform: translate(55vw, 25vh) scale(0.5);
-          }
-          37% {
-            transform: translate(85vw, 12vh) scale(0.5);
+            transform: translate3d(-10px, 4px, 0px) rotate(-4deg);
           }
           50% {
-            transform: translate(95vw, 45vh) scale(0.5);
-          }
-          62% {
-            transform: translate(60vw, 75vh) scale(0.5);
-          }
-          75% {
-            transform: translate(30vw, 85vh) scale(0.5);
-          }
-          87% {
-            transform: translate(5vw, 55vh) scale(0.5);
+            transform: translate3d(10px, -10px, 0px) rotate(3deg);
           }
           100% {
-            transform: translate(-10vw, 15vh) scale(0.5);
+            transform: translate3d(-10px, 4px, 0px) rotate(-4deg);
           }
         }
 
-        .animate-mermaid-swim {
-          animation: mermaid-swim 32s ease-in-out infinite;
+        @keyframes mermaidNotesFloat {
+          0%, 100% {
+            transform: translate3d(0px, 0px, 0px);
+          }
+          50% {
+            transform: translate3d(0px, -10px, 0px);
+          }
+        }
+
+        @keyframes mermaidAboutWave {
+          0%, 100% {
+            transform: translate3d(0px, 0px, 0px) rotate(0deg) scale(1);
+          }
+          50% {
+            transform: translate3d(0px, -8px, 0px) rotate(-4deg) scale(1.04);
+          }
         }
       `}</style>
 
@@ -216,8 +211,6 @@ export default function Page() {
               "radial-gradient(circle at 82% 14%, rgba(255,255,255,0.18), transparent 24%), radial-gradient(circle at 72% 10%, rgba(215,255,248,0.14), transparent 20%), radial-gradient(circle at 18% 18%, rgba(29,79,138,0.16), transparent 20%)",
           }}
         />
-
-        <MermaidSwimmer />
 
         {ambientBubbles.map((b) => (
           <span
@@ -287,7 +280,10 @@ export default function Page() {
       ))}
 
       <main className="relative z-10">
-        <section id="hero" className="min-h-screen px-6 pt-8 pb-20 lg:px-10">
+        <section
+          id="hero"
+          className="relative min-h-screen px-6 pt-8 pb-20 lg:px-10"
+        >
           <nav className="mx-auto flex max-w-7xl items-center justify-between">
             <div className="rounded-full border border-white/20 bg-white/10 px-4 py-2 backdrop-blur-md">
               <span className="text-sm tracking-[0.22em] text-white/92">
@@ -361,6 +357,23 @@ export default function Page() {
               Scroll to descend
             </a>
           </div>
+
+          <img
+            src="/mermaid-sprites.png"
+            alt="Mermaid swimming through the reef"
+            className="pointer-events-none absolute right-[4%] top-[20%] hidden xl:block select-none"
+            style={
+              {
+                width: "280px",
+                height: "200px",
+                objectFit: "cover",
+                objectPosition: "20% 30%",
+                filter:
+                  "drop-shadow(0 0 32px rgba(124, 230, 255, 0.85)) saturate(1.05)",
+                animation: "mermaidHeroSwim 7.2s ease-in-out infinite",
+              } as React.CSSProperties
+            }
+          />
         </section>
 
         <section className="px-6 pb-8 lg:px-10">
@@ -392,7 +405,10 @@ export default function Page() {
           </div>
         </section>
 
-        <section id="notes" className="px-6 py-14 lg:px-10">
+        <section
+          id="notes"
+          className="relative px-6 py-14 lg:px-10"
+        >
           <div className="mx-auto max-w-7xl rounded-[56px] border border-white/14 bg-white/8 p-8 backdrop-blur-xl md:p-10">
             <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
               <div>
@@ -461,6 +477,23 @@ export default function Page() {
               </div>
             )}
           </div>
+
+          <img
+            src="/mermaid-sprites.png"
+            alt="Mermaid resting on a rock"
+            className="pointer-events-none absolute -left-6 top-10 hidden lg:block select-none"
+            style={
+              {
+                width: "220px",
+                height: "180px",
+                objectFit: "cover",
+                objectPosition: "52% 30%",
+                filter:
+                  "drop-shadow(0 0 28px rgba(134, 230, 255, 0.8)) saturate(1.02)",
+                animation: "mermaidNotesFloat 8.4s ease-in-out infinite",
+              } as React.CSSProperties
+            }
+          />
         </section>
 
         <section id="projects" className="px-6 py-6 lg:px-10">
@@ -503,7 +536,10 @@ export default function Page() {
           </div>
         </section>
 
-        <section id="about" className="px-6 py-20 lg:px-10">
+        <section
+          id="about"
+          className="relative px-6 py-20 lg:px-10"
+        >
           <div className="mx-auto max-w-5xl rounded-[58px] border border-white/14 bg-white/8 px-6 py-14 text-center backdrop-blur-xl md:px-10">
             <p className="text-sm uppercase tracking-[0.28em] text-white/70">
               Mission
@@ -538,6 +574,23 @@ export default function Page() {
               </a>
             </div>
           </div>
+
+          <img
+            src="/mermaid-sprites.png"
+            alt="Mermaid lounging near the seabed"
+            className="pointer-events-none absolute -bottom-10 right-4 hidden md:block select-none"
+            style={
+              {
+                width: "230px",
+                height: "190px",
+                objectFit: "cover",
+                objectPosition: "82% 76%",
+                filter:
+                  "drop-shadow(0 0 30px rgba(115, 230, 255, 0.9)) saturate(1.06)",
+                animation: "mermaidAboutWave 9.6s ease-in-out infinite",
+              } as React.CSSProperties
+            }
+          />
         </section>
       </main>
     </div>
