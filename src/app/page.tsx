@@ -354,13 +354,38 @@ function Mermaid({ progress, mouse }: SceneProps) {
 
     const t = clock.getElapsedTime();
     ref.current.position.x = -4.8 + Math.sin(t * 0.35) * 3.4 + mouse.x * 0.9;
-    ref.current.position.y = 1.9 + Math.sin(t * 1.2) * 0.22 - progress * 1.4 + mouse.y * 0.35;
+    ref.current.position.y =
+      1.9 + Math.sin(t * 1.2) * 0.22 - progress * 1.4 + mouse.y * 0.35;
     ref.current.position.z = 1.2 + Math.cos(t * 0.3) * 0.35;
     ref.current.rotation.z = Math.sin(t * 1.1) * 0.12;
     ref.current.rotation.y = Math.sin(t * 0.35) * 0.18 + 0.35;
 
+    const spineUpper = ref.current.getObjectByName("spine-upper");
+    const spineLower = ref.current.getObjectByName("spine-lower");
+    const tailBase = ref.current.getObjectByName("tail-base");
     const tail = ref.current.getObjectByName("tail");
-    if (tail) tail.rotation.z = Math.sin(t * 3.4) * 0.22;
+
+    const swimPhase = t * 2.6;
+    const spineWave = Math.sin(swimPhase) * 0.08;
+    const lowerWave = Math.sin(swimPhase + 0.5) * 0.12;
+    const tailWave = Math.sin(swimPhase + 0.9) * 0.24;
+
+    if (spineUpper) {
+      spineUpper.rotation.z = spineWave * 0.6;
+      spineUpper.rotation.y = spineWave * 0.4;
+    }
+    if (spineLower) {
+      spineLower.rotation.z = lowerWave * 0.9;
+      spineLower.rotation.y = lowerWave * 0.6;
+    }
+    if (tailBase) {
+      tailBase.rotation.z = lowerWave * 1.1;
+      tailBase.rotation.y = lowerWave * 0.7;
+    }
+    if (tail) {
+      tail.rotation.z = tailWave;
+      tail.rotation.y = tailWave * 0.3;
+    }
 
     const fin = ref.current.getObjectByName("fin");
     if (fin) fin.rotation.z = Math.sin(t * 4.1) * 0.38;
@@ -372,70 +397,128 @@ function Mermaid({ progress, mouse }: SceneProps) {
   return (
     <Float speed={1.1} rotationIntensity={0.15} floatIntensity={0.25}>
       <group ref={ref} scale={1.18}>
-        <mesh position={[0, 0.65, 0]}>
-          <capsuleGeometry args={[0.28, 0.75, 10, 18]} />
-          <meshStandardMaterial color="#f7d7c6" roughness={0.5} />
-        </mesh>
-        <mesh position={[0, 1.45, 0.05]}>
-          <sphereGeometry args={[0.25, 24, 24]} />
-          <meshStandardMaterial color="#f5d3c2" roughness={0.45} />
-        </mesh>
-        <mesh name="hair" position={[-0.02, 1.48, -0.12]}>
-          <sphereGeometry args={[0.28, 24, 24]} />
-          <meshStandardMaterial
-            color="#7d3cf2"
-            emissive="#5c2bd1"
-            emissiveIntensity={0.18}
-            roughness={0.55}
-          />
-        </mesh>
-        <mesh position={[0, 0.82, 0.17]}>
-          <sphereGeometry args={[0.2, 16, 16]} />
-          <meshStandardMaterial
-            color="#c46cff"
-            emissive="#8a5cff"
-            emissiveIntensity={0.28}
-            roughness={0.35}
-          />
-        </mesh>
-        <mesh position={[-0.42, 0.88, 0]} rotation={[0, 0, 0.45]}>
-          <capsuleGeometry args={[0.08, 0.42, 8, 8]} />
-          <meshStandardMaterial color="#f4d2c2" roughness={0.45} />
-        </mesh>
-        <mesh position={[0.42, 0.88, 0]} rotation={[0, 0, -0.45]}>
-          <capsuleGeometry args={[0.08, 0.42, 8, 8]} />
-          <meshStandardMaterial color="#f4d2c2" roughness={0.45} />
-        </mesh>
-        <mesh position={[0, -0.35, 0]} rotation={[0, 0, 0.06]}>
-          <cylinderGeometry args={[0.23, 0.12, 1.28, 16]} />
-          <meshStandardMaterial
-            color="#56d8ff"
-            emissive="#56d8ff"
-            emissiveIntensity={0.32}
-            roughness={0.28}
-            metalness={0.08}
-          />
-        </mesh>
-        <mesh name="tail" position={[0, -1.1, 0]}>
-          <cylinderGeometry args={[0.13, 0.05, 0.95, 12]} />
-          <meshStandardMaterial
-            color="#64f2d3"
-            emissive="#64f2d3"
-            emissiveIntensity={0.28}
-            roughness={0.28}
-          />
-        </mesh>
-        <mesh name="fin" position={[0, -1.75, 0]} rotation={[0, 0, Math.PI / 2]}>
-          <coneGeometry args={[0.42, 0.8, 4]} />
-          <meshStandardMaterial
-            color="#89e8ff"
-            emissive="#70dfff"
-            emissiveIntensity={0.38}
-            transparent
-            opacity={0.95}
-            roughness={0.18}
-          />
-        </mesh>
+        {/* Upper body / spine */}
+        <group name="spine-upper">
+          <mesh position={[0, 0.65, 0]}>
+            <capsuleGeometry args={[0.28, 0.8, 24, 32]} />
+            <meshPhysicalMaterial
+              color="#f3d2c0"
+              roughness={0.45}
+              metalness={0.0}
+              sheen={0.35}
+              sheenRoughness={0.6}
+              clearcoat={0.25}
+              clearcoatRoughness={0.6}
+            />
+          </mesh>
+          <mesh position={[0, 1.45, 0.05]}>
+            <sphereGeometry args={[0.25, 32, 32]} />
+            <meshPhysicalMaterial
+              color="#f1cdb8"
+              roughness={0.42}
+              metalness={0.0}
+              sheen={0.35}
+              sheenRoughness={0.6}
+              clearcoat={0.25}
+              clearcoatRoughness={0.6}
+            />
+          </mesh>
+          <mesh name="hair" position={[-0.02, 1.48, -0.16]}>
+            <sphereGeometry args={[0.3, 36, 36]} />
+            <meshStandardMaterial
+              color="#5f3bd4"
+              emissive="#3c2aa3"
+              emissiveIntensity={0.12}
+              roughness={0.6}
+            />
+          </mesh>
+          {/* simple eyes */}
+          <mesh position={[0.09, 1.46, 0.16]}>
+            <sphereGeometry args={[0.035, 18, 18]} />
+            <meshStandardMaterial color="#111827" roughness={0.25} />
+          </mesh>
+          <mesh position={[-0.09, 1.46, 0.16]}>
+            <sphereGeometry args={[0.035, 18, 18]} />
+            <meshStandardMaterial color="#111827" roughness={0.25} />
+          </mesh>
+          <mesh position={[0, 0.84, 0.18]}>
+            <sphereGeometry args={[0.2, 24, 24]} />
+            <meshPhysicalMaterial
+              color="#b96df0"
+              roughness={0.35}
+              metalness={0.1}
+              clearcoat={0.3}
+              clearcoatRoughness={0.4}
+            />
+          </mesh>
+          <mesh position={[-0.42, 0.88, 0]} rotation={[0, 0, 0.45]}>
+            <capsuleGeometry args={[0.08, 0.42, 12, 12]} />
+            <meshPhysicalMaterial
+              color="#f2d0bf"
+              roughness={0.45}
+              metalness={0}
+              sheen={0.25}
+              sheenRoughness={0.7}
+            />
+          </mesh>
+          <mesh position={[0.42, 0.88, 0]} rotation={[0, 0, -0.45]}>
+            <capsuleGeometry args={[0.08, 0.42, 12, 12]} />
+            <meshPhysicalMaterial
+              color="#f2d0bf"
+              roughness={0.45}
+              metalness={0}
+              sheen={0.25}
+              sheenRoughness={0.7}
+            />
+          </mesh>
+        </group>
+
+        {/* Lower spine and tail */}
+        <group name="spine-lower" position={[0, -0.35, 0]} rotation={[0, 0, 0.04]}>
+          <group name="tail-base" position={[0, -0.05, 0]}>
+            <mesh>
+              <cylinderGeometry args={[0.24, 0.14, 1.5, 28]} />
+              <meshPhysicalMaterial
+                color="#3fc0b7"
+                roughness={0.3}
+                metalness={0.08}
+                transmission={0.25}
+                thickness={0.6}
+                ior={1.33}
+                clearcoat={0.3}
+                clearcoatRoughness={0.35}
+              />
+            </mesh>
+          </group>
+          <group name="tail" position={[0, -1.15, 0]}>
+            <mesh>
+              <cylinderGeometry args={[0.16, 0.06, 1.1, 32]} />
+              <meshPhysicalMaterial
+                color="#48d3c4"
+                roughness={0.28}
+                metalness={0.08}
+                transmission={0.32}
+                thickness={0.7}
+                ior={1.33}
+                clearcoat={0.35}
+                clearcoatRoughness={0.35}
+              />
+            </mesh>
+            <mesh name="fin" position={[0, -0.9, 0]} rotation={[0, 0, Math.PI / 2]}>
+              <coneGeometry args={[0.45, 0.9, 22]} />
+              <meshPhysicalMaterial
+                color="#7ddff5"
+                roughness={0.16}
+                metalness={0.05}
+                transmission={0.6}
+                thickness={0.5}
+                ior={1.33}
+                clearcoat={0.4}
+                clearcoatRoughness={0.25}
+              />
+            </mesh>
+          </group>
+        </group>
       </group>
     </Float>
   );
@@ -574,13 +657,19 @@ function UnderwaterScene({ progress, mouse }: SceneProps) {
     <>
       <color attach="background" args={[colors.bottom]} />
       <fog attach="fog" args={[fogColor, 10, 28]} />
-      <ambientLight intensity={1.1} color={colors.ambient} />
-      <directionalLight position={[4, 7, 6]} intensity={2.1} color="#d8fbff" />
-      <pointLight position={[-5, 2, 4]} intensity={1.2} color="#75f2ff" />
+      <ambientLight intensity={0.7} color={colors.ambient} />
+      <directionalLight position={[4, 7, 6]} intensity={2.4} color="#d8fbff" />
+      <pointLight position={[-5, 2, 4]} intensity={1.15} color="#75f2ff" />
       <pointLight
         position={[5, -2, 2]}
         intensity={0.8 + progress * 0.5}
         color="#ae8eff"
+      />
+      <pointLight
+        position={[-4.5, 2.4, 2.2]}
+        intensity={0.7}
+        distance={14}
+        color="#b9ecff"
       />
       <CameraRig progress={progress} mouse={mouse} />
       <DepthScenery progress={progress} mouse={mouse} />
